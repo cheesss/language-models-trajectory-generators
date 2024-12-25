@@ -28,10 +28,16 @@ sys.path.append("./XMem/")
 print = functools.partial(print, flush=True)
 
 from XMem.model.network import XMem
+import os
+from dotenv import load_dotenv
 
+
+load_dotenv("openaiAPI.env")
+api_key = os.getenv("api_key")
+client = OpenAI(api_key=api_key)
 if __name__ == "__main__":
 
-    openai.api_key = os.getenv("OPENAI_API_KEY")
+    openai.api_key = os.getenv(api_key)
 
     # Parse args
     parser = argparse.ArgumentParser(description="Main Program.")

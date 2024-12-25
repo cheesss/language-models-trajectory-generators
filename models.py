@@ -7,8 +7,11 @@ from openai import OpenAI
 from PIL import Image
 from torchvision import transforms
 from torchvision.utils import draw_bounding_boxes, draw_segmentation_masks
-
+from dotenv import load_dotenv
+import os
 sys.path.append("./XMem/")
+load_dotenv("openaiAPI.env")
+api_key = os.getenv("api_key")
 
 from XMem.inference.inference_core import InferenceCore
 from XMem.inference.interact.interactive_utils import image_to_torch, index_numpy_to_one_hot_torch, torch_prob_to_numpy_mask, overlay_davis
@@ -50,7 +53,7 @@ def get_chatgpt_output(model, new_prompt, messages, role, file=sys.stdout):
     print(new_prompt, file=file)
     messages.append({"role":role, "content":new_prompt})
 
-    client = OpenAI()
+    client = OpenAI(api_key=api_key)
 
     completion = client.chat.completions.create(
         model=model,
