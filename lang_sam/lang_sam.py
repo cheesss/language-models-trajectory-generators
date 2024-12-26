@@ -51,6 +51,10 @@ class LangSAM:
                 "mask_scores": [],
             }
 
+            if isinstance(images_pil, Image.Image):
+                images_pil = [images_pil]
+
+
             if result["labels"]:
                 processed_result["boxes"] = result["boxes"].cpu().numpy()
                 processed_result["scores"] = result["scores"].cpu().numpy()

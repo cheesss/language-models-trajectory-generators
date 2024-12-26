@@ -57,6 +57,7 @@ class API:
         segmentation_texts = [segmentation_text]
 
         self.logger.info(PROGRESS + "Segmenting head camera image..." + ENDC)
+        # print("this is test", rgb_image_head, self.langsam_model, segmentation_texts, self.segmentation_count)
         model_predictions, boxes, segmentation_texts = models.get_langsam_output(rgb_image_head, self.langsam_model, segmentation_texts, self.segmentation_count)
         self.logger.info(OK + "Finished segmenting head camera image!" + ENDC)
 
