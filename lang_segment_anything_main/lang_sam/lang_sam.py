@@ -54,12 +54,7 @@ class LangSAM:
             if result["labels"]:
                 processed_result["boxes"] = result["boxes"].cpu().numpy()
                 processed_result["scores"] = result["scores"].cpu().numpy()
-                
-                if isinstance(images_pil, Image.Image):  # 단일 이미지일 경우
-                    images_pil = [images_pil]
-                for idx in range(len(images_pil)):
-                    sam_images.append(np.asarray(images_pil[idx]))
-                    
+                sam_images.append(np.asarray(images_pil[idx]))
                 sam_boxes.append(processed_result["boxes"])
                 sam_indices.append(idx)
 

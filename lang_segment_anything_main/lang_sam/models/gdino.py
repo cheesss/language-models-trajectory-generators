@@ -32,23 +32,14 @@ class GDINO:
         box_threshold: float,
         text_threshold: float,
     ) -> list[dict]:
-        
-        if isinstance(text_prompt, list):
-            for i, prompt in enumerate(text_prompt):
-                if not prompt.endswith("."):
-                    text_prompt[i] = prompt + "."
-        elif isinstance(text_prompt, str):
-            if not text_prompt.endswith("."):
-                text_prompt += "."
-        else:
-            raise TypeError("text_prompt must be either a list or a string")
-
+        for i, prompt in enumerate(text_prompt):
+            # 마지막 문자가 "."이 아니면 추가
+            if prompt[-1] != ".":
+                text_prompt[i] = prompt + "."
+                
         inputs = self.processor(images=pil_images, text=text_prompt, return_tensors="pt").to(DEVICE)
         with torch.no_grad():
             outputs = self.model(**inputs)
-
-        if isinstance(pil_images, Image.Image):
-            pil_images = [pil_images]
 
         results = self.processor.post_process_grounded_object_detection(
             outputs,

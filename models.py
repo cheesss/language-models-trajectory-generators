@@ -19,13 +19,16 @@ from XMem.inference.interact.interactive_utils import image_to_torch, index_nump
 def get_langsam_output(image, model, segmentation_texts, segmentation_count):
 
     segmentation_texts = " . ".join(segmentation_texts)
-    
-    result = model.predict(image_tensor, segmentation_texts)
+
     # masks, boxes, phrases, logits = model.predict(image, segmentation_texts)
-    if isinstance(result, list) and len(result) == 4:
-        masks, boxes, phrases, logits = result
-    else:
-        raise ValueError("Unexpected output format from model.predict. Expected a list with 4 elements.")
+    data= model.predict(image, segmentation_texts)
+
+    result_dict = data[0]  # 리스트의 첫 번째 딕셔너리 추출
+    print("result_dict=",result_dict)
+    logits = result_dict['scores']
+    phrases= result_dict['labels']
+    boxes = result_dict['boxes']
+    masks = result_dict['masks']
 
     _, ax = plt.subplots(1, 1 + len(masks), figsize=(5 + (5 * len(masks)), 5))
     [a.axis("off") for a in ax.flatten()]
