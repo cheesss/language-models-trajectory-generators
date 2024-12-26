@@ -33,10 +33,22 @@ class GDINO:
         box_threshold: float,
         text_threshold: float,
     ) -> list[dict]:
-        for i, prompt in enumerate(text_prompt):
-            if prompt[-1] != ".":
-                text_prompt[i] += "."
+        # Ensure pil_images is a list
+        if isinstance(pil_images, Image.Image):
+            pil_images = [pil_images]
+
+        # Ensure text_prompt is a list of strings
+        if isinstance(text_prompt, str):
+            text_prompt = [text_prompt]
+
+        # Append a period to prompts that do not end with one
+        text_prompt = [
+            prompt if prompt.endswith(".") else prompt + "." for prompt in text_prompt
+        ]
+
+        # Process images
         inputs = self.processor(images=pil_images, text=text_prompt, return_tensors="pt").to(DEVICE)
+
         with torch.no_grad():
             outputs = self.model(**inputs)
 
@@ -48,6 +60,7 @@ class GDINO:
             target_sizes=[k.size[::-1] for k in pil_images],
         )
         return results
+
 
 
 if __name__ == "__main__":
