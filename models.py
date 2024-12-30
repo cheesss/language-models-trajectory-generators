@@ -23,12 +23,13 @@ def get_langsam_output(image, model, segmentation_texts, segmentation_count):
     # masks, boxes, phrases, logits = model.predict(image, segmentation_texts)
     data= model.predict(image, segmentation_texts)
 
-    result_dict = data[0]  # 리스트의 첫 번째 딕셔너리 추출
+    result_dict = data 
     print("result_dict=",result_dict)
-    logits = result_dict['scores']
-    phrases= result_dict['labels']
-    boxes = result_dict['boxes']
-    masks = result_dict['masks']
+
+    logits = [item['scores'] for item in result_dict]
+    phrases = [item['labels'] for item in result_dict]
+    boxes = [item['boxes'] for item in result_dict]
+    masks = [item['masks'] for item in result_dict]
 
     _, ax = plt.subplots(1, 1 + len(masks), figsize=(5 + (5 * len(masks)), 5))
     [a.axis("off") for a in ax.flatten()]
@@ -37,7 +38,9 @@ def get_langsam_output(image, model, segmentation_texts, segmentation_count):
     for i, (mask, box, phrase) in enumerate(zip(masks, boxes, phrases)):
         to_tensor = transforms.PILToTensor()
         image_tensor = to_tensor(image)
+        print(image_tensor.shape)
         box = box.unsqueeze(dim=0)
+        
         image_tensor = draw_bounding_boxes(image_tensor, box, colors=["red"], width=3)
         image_tensor = draw_segmentation_masks(image_tensor, mask, alpha=0.5, colors=["cyan"])
         to_pil_image = transforms.ToPILImage()
