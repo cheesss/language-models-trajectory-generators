@@ -9,9 +9,24 @@ from torchvision import transforms
 from torchvision.utils import draw_bounding_boxes, draw_segmentation_masks
 from dotenv import load_dotenv
 import os
+import json
+
+
 sys.path.append("./XMem/")
 load_dotenv("openaiAPI.env")
 api_key = os.getenv("api_key")
+
+import logging
+
+# 로깅 기본 설정
+logging.basicConfig(
+    level=logging.INFO,  # 출력할 최소 레벨 설정
+    format='%(asctime)s - %(levelname)s - %(message)s',  # 출력 형식 설정
+    handlers=[logging.StreamHandler()]  # 콘솔 출력 핸들러
+)
+logger = logging.getLogger(__name__)
+
+
 
 from XMem.inference.inference_core import InferenceCore
 from XMem.inference.interact.interactive_utils import image_to_torch, index_numpy_to_one_hot_torch, torch_prob_to_numpy_mask, overlay_davis
@@ -22,6 +37,11 @@ def get_langsam_output(image, model, segmentation_texts, segmentation_count):
 
     # masks, boxes, phrases, logits = model.predict(image, segmentation_texts)
     data= model.predict(image, segmentation_texts)
+    output_file_txt = "model_output.txt"
+    with open(output_file_txt, "w") as f:
+        f.write(str(data))
+
+
 
     result_dict = data 
     print("result_dict=",result_dict)
@@ -31,6 +51,13 @@ def get_langsam_output(image, model, segmentation_texts, segmentation_count):
     boxes = [item['boxes'] for item in result_dict]
     masks = [item['masks'] for item in result_dict]
 
+    output_file = "output_data.txt"
+    with open(output_file, "w") as f:
+        f.write(f"logits: {logits}\n")
+        f.write(f"phrases: {phrases}\n")
+        f.write(f"boxes: {boxes}\n")
+        f.write(f"masks: {masks}\n")
+
     _, ax = plt.subplots(1, 1 + len(masks), figsize=(5 + (5 * len(masks)), 5))
     [a.axis("off") for a in ax.flatten()]
     ax[0].imshow(image)
@@ -38,9 +65,12 @@ def get_langsam_output(image, model, segmentation_texts, segmentation_count):
     for i, (mask, box, phrase) in enumerate(zip(masks, boxes, phrases)):
         to_tensor = transforms.PILToTensor()
         image_tensor = to_tensor(image)
-        print(image_tensor.shape)
-        box = box.unsqueeze(dim=0)
-        
+        box = torch.tensor(box)
+        # logger.info(box.shape)
+        # box = box.unsqueeze(dim=0)
+        # logger.info(box.shape)
+
+
         image_tensor = draw_bounding_boxes(image_tensor, box, colors=["red"], width=3)
         image_tensor = draw_segmentation_masks(image_tensor, mask, alpha=0.5, colors=["cyan"])
         to_pil_image = transforms.ToPILImage()
@@ -52,6 +82,7 @@ def get_langsam_output(image, model, segmentation_texts, segmentation_count):
     plt.savefig(config.langsam_image_path.format(object=segmentation_count))
     plt.show()
 
+    masks = torch.tensor(masks)
     masks = masks.float()
 
     return masks, boxes, phrases
