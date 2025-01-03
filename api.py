@@ -199,7 +199,8 @@ class API:
                             orientation = possible_orientations[min_index]
                             object_orientations.append(orientation)
 
-                new_prompt += self.segmentation_texts[object - 1] + " trajectory positions and orientations:\n"
+                # new_prompt += self.segmentation_texts[object - 1] + " trajectory positions and orientations:\n"
+                new_prompt += "".join(self.segmentation_texts[object - 1]) + " trajectory positions and orientations:\n"
                 new_prompt += "Positions:\n"
                 new_prompt += str(np.around([position for p, position in enumerate(object_positions) if p % config.xmem_lm_input_every == 0], 3)) + "\n"
                 new_prompt += "Orientations:\n"

@@ -40,6 +40,13 @@ class LangSAM:
         """
 
         gdino_results = self.gdino.predict(images_pil, texts_prompt, box_threshold, text_threshold)
+
+        gdino_results_file_txt = "gdino_results_output.txt"
+        with open(gdino_results_file_txt, "w") as f:
+            f.write(str(gdino_results))
+        
+        
+        
         all_results = []
         sam_images = []
         sam_boxes = []

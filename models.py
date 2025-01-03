@@ -71,10 +71,10 @@ def get_langsam_output(image, model, segmentation_texts, segmentation_count):
         # logger.info(box.shape)
 
 
-        image_tensor = draw_bounding_boxes(image_tensor, box, colors=["red"], width=3)
+        image_tensor = draw_bounding_boxes(image_tensor, box, colors=["red","red"], width=3)
         mask = torch.tensor(mask)
         mask = mask.bool()
-        image_tensor = draw_segmentation_masks(image_tensor, mask, alpha=0.5, colors=["cyan"])
+        image_tensor = draw_segmentation_masks(image_tensor, mask, alpha=0.5, colors=["cyan","cyan"])
         to_pil_image = transforms.ToPILImage()
         image_pil = to_pil_image(image_tensor)
 

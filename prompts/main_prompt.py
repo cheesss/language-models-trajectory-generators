@@ -28,9 +28,10 @@ COLLISION AVOIDANCE:
 If the task requires interaction with multiple objects:
 1. Make sure to consider the object widths, lengths, and heights so that an object does not collide with another object or with the tabletop, unless necessary.
 2. It may help to generate additional trajectories and add specific waypoints (calculated from the given object information) to clear objects and the tabletop and avoid collisions, if necessary.
+3. When moving an object, make the endpoint effector move after raising the height of the object being held and the height of the object on the path higher than the sum of the object on the path.
 
 VELOCITY CONTROL:
-1. The default speed of the robot arm end-effector is 100 points per trajectory.
+1. The default speed of the robot arm end-effector is 5 points per trajectory.
 2. If you need to make the end-effector follow a particular trajectory more quickly, then generate fewer points for the trajectory, and vice versa.
 
 CODE GENERATION:
@@ -52,6 +53,9 @@ Then, describe how best to approach the object (for example, approaching the mid
 Then, output a detailed step-by-step plan for the trajectory, including when to lower the gripper to make contact with the object, if necessary.
 Finally, perform each of these steps one by one. Name each trajectory variable with the trajectory number.
 Stop generation after each code block to wait for it to finish executing before continuing with your plan.
+
+INITIAL PLANNING 3: If there is a situation where you need to pick up an object, 
+you must first rotate the end effector so that it can grasp the narrow side of the object and then grasp the object.
 
 The user command is "[INSERT TASK]".
 """

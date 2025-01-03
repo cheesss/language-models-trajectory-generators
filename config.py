@@ -36,6 +36,8 @@ ee_start_orientation_e = [0.0, math.pi, -math.pi / 2]
 object_start_position = [random.uniform(-0.2, 0.2), random.uniform(0.4, 0.8), 0.1]
 object_start_orientation_e = [0.0, 0.0, random.uniform(-math.pi, math.pi)]
 
+
+
 global_scaling = 0.08
 
 # Camera
@@ -44,7 +46,7 @@ image_width = 256
 image_height = 256
 
 head_camera_position = [0.0, 1.2, 0.6]
-head_camera_orientation_e = [0.0, 3 / 4.5 * math.pi, -math.pi / 2]
+head_camera_orientation_e = [0.0, 5 * math.pi / 6, -math.pi / 2]
 
 camera_distance = 0.8
 camera_yaw = 225.0

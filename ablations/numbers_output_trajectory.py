@@ -24,6 +24,7 @@ COLLISION AVOIDANCE:
 If the task requires interaction with multiple objects:
 1. Make sure to consider the object widths, lengths, and heights so that an object does not collide with another object or with the tabletop, unless necessary.
 2. It may help to generate additional trajectories and add specific waypoints (calculated from the given object information) to clear objects and the tabletop and avoid collisions, if necessary.
+3. The trajectory should avoid any potential collisions with other objects or the tabletop.
 
 VELOCITY CONTROL:
 1. The default speed of the robot arm end-effector is 0.01 between each trajectory point.
@@ -46,6 +47,9 @@ Then, output a detailed step-by-step plan for the trajectory, including when to 
 Finally, perform each of these steps one by one.
 Write out the final trajectory in full in between the <trajectory> and </trajectory> tags, as a Python list.
 Do not write any Python functions, and do not comment out parts of the trajectory, as these will not be run.
+
+INITIAL PLANNING 3:
+You should rotate the end pointer so that it can grab the narrow side of the object, and then pick up the box after performing the rotation.
 
 The user command is "[INSERT TASK]".
 """

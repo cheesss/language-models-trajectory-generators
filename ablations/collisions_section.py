@@ -48,5 +48,8 @@ Then, output a detailed step-by-step plan for the trajectory, including when to 
 Finally, perform each of these steps one by one. Name each trajectory variable with the trajectory number.
 Stop generation after each code block to wait for it to finish executing before continuing with your plan.
 
+INITIAL PLANNING 3:
+You should rotate the end pointer so that it can grab the narrow side of the object, and then pick up the box after performing the rotation.
+
 The user command is "[INSERT TASK]".
 """

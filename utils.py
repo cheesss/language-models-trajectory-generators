@@ -63,15 +63,15 @@ def save_xmem_image(masks):
     xmem_array = np.array(Image.open(config.xmem_input_path).convert("L"))
     xmem_array = np.unique(xmem_array, return_inverse=True)[1].reshape(xmem_array.shape)
 
-    for mask in masks:
-        # mask 차원 확인 및 변환
-        mask_np = mask.detach().cpu().numpy()
-        if mask_np.ndim == 3:
-            mask_np = mask_np.squeeze(0)  # 3D -> 2D (H, W)
+    # for mask in masks:
+    #     # mask 차원 확인 및 변환
+    #     mask_np = mask.detach().cpu().numpy()
+    #     if mask_np.ndim == 3:
+    #         mask_np = mask_np.squeeze(0)  # 3D -> 2D (H, W)
 
-        # mask 값 적용
-        mask_index = np.max(xmem_array) + 1
-        xmem_array[mask_np.astype(bool)] = mask_index
+    #     # mask 값 적용
+    #     mask_index = np.max(xmem_array) + 1
+    #     xmem_array[mask_np.astype(bool)] = mask_index
 
     xmem_array = xmem_array / np.max(xmem_array)
 

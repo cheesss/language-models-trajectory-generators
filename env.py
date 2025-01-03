@@ -6,6 +6,10 @@ import config
 from robot import Robot
 from config import OK, PROGRESS, FAIL, ENDC
 from config import CAPTURE_IMAGES, ADD_BOUNDING_CUBES, ADD_TRAJECTORY_POINTS, EXECUTE_TRAJECTORY, OPEN_GRIPPER, CLOSE_GRIPPER, TASK_COMPLETED, RESET_ENVIRONMENT
+import random
+import math
+
+
 
 class Environment:
 
@@ -19,7 +23,16 @@ class Environment:
 
         object_start_position = config.object_start_position
         object_start_orientation_q = p.getQuaternionFromEuler(config.object_start_orientation_e)
-        object_model = p.loadURDF("ycb_assets/003_cracker_box.urdf", object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
+        object_model = p.loadURDF("ycb_assets/005_tomato_soup_can.urdf",object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
+
+
+        object_start_position = [random.uniform(-0.2, 0.2), random.uniform(0.4, 0.8), 0.1]
+        object_start_orientation_e = [0.0, 0.0, random.uniform(-math.pi, math.pi)]
+        object_start_orientation_q = p.getQuaternionFromEuler(object_start_orientation_e)
+        object_model = p.loadURDF("ycb_assets/003_cracker_box.urdf",object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
+
+
+
 
         if self.mode == "default":
 
