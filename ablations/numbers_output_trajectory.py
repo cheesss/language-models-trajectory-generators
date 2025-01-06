@@ -25,6 +25,7 @@ If the task requires interaction with multiple objects:
 1. Make sure to consider the object widths, lengths, and heights so that an object does not collide with another object or with the tabletop, unless necessary.
 2. It may help to generate additional trajectories and add specific waypoints (calculated from the given object information) to clear objects and the tabletop and avoid collisions, if necessary.
 3. The trajectory should avoid any potential collisions with other objects or the tabletop.
+4. Always consider the height of an object to prevent it from colliding. The height of an object is not the center of the object, but the length from highest to lowest in the object.
 
 VELOCITY CONTROL:
 1. The default speed of the robot arm end-effector is 0.01 between each trajectory point.

@@ -70,11 +70,11 @@ def get_langsam_output(image, model, segmentation_texts, segmentation_count):
         # box = box.unsqueeze(dim=0)
         # logger.info(box.shape)
 
-
-        image_tensor = draw_bounding_boxes(image_tensor, box, colors=["red","red"], width=3)
+        # 물체 개수가 변하면 아래 색깔 개수를 바꿔줘야한다.
+        image_tensor = draw_bounding_boxes(image_tensor, box, colors=["red","red","red"], width=3)
         mask = torch.tensor(mask)
         mask = mask.bool()
-        image_tensor = draw_segmentation_masks(image_tensor, mask, alpha=0.5, colors=["cyan","cyan"])
+        image_tensor = draw_segmentation_masks(image_tensor, mask, alpha=0.5, colors=["cyan","cyan","cyan"])
         to_pil_image = transforms.ToPILImage()
         image_pil = to_pil_image(image_tensor)
 
