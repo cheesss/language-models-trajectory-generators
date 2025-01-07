@@ -32,6 +32,14 @@ import os
 from dotenv import load_dotenv
 
 
+def save_code_block_to_file(code_block, file_name="code_blocks.txt"):
+    with open(file_name, "a") as file:
+        file.write(str(code_block))  # 코드 블록을 파일에 저장
+        file.write("\n\n")  
+
+
+
+
 load_dotenv("openaiAPI.env")
 api_key = os.getenv("api_key")
 # api_key가져오기
@@ -119,19 +127,22 @@ if __name__ == "__main__":
                 #   {"role": "assistant", "content": "```python\nprint('Hello, World!')\n```"} 꼴의 데이터에서 'Hello, World!'를 가져온다,
                 #   코드가 리턴되므로 코드 블럭이라는 변수에 저장해준다.
                 block_number = 0
-                
+                save_code_block_to_file(code_block)
                 for block in code_block:
                     if len(block.split("```")) > 1:
                         # 받은 
                         code = block.split("```")[0]
+                        save_code_block_to_file(code)
                         block_number += 1
                         try:
                             f = StringIO()
                             with redirect_stdout(f):
                                 exec(code)
+                    # 여기서 받은 코드를 실행하는듯 하다.
                         except Exception:
                             error_message = traceback.format_exc()
                             new_prompt += ERROR_CORRECTION_PROMPT.replace("[INSERT BLOCK NUMBER]", str(block_number)).replace("[INSERT ERROR MESSAGE]", error_message)
+                            # 에러메세지를 다시 전달한다. 
                             new_prompt += "\n"
                             error = True
                         else:
@@ -141,7 +152,7 @@ if __name__ == "__main__":
                                 new_prompt += PRINT_OUTPUT_PROMPT.replace("[INSERT PRINT STATEMENT OUTPUT]", s)
                                 new_prompt += "\n"
                                 error = True
-
+                            
             if error:
 
                 api.completed_task = False

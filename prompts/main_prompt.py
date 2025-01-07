@@ -45,19 +45,20 @@ When generating the code for the trajectory, do the following:
 5. If you want to print the calculated value of a variable to use later, make sure to use the print function to three decimal places, instead of simply writing the variable name. Do not print any of the trajectory variables, since the output will be too long.
 6. Mark any code clearly with the ```python and ``` tags.
 
-INITIAL PLANNING 1:
+INITIAL PLANNING 1: If there is a situation where you need to pick up an object, 
+you must first rotate the end effector so that it can grasp the narrow side of the object and then grasp the object.
+
+INITIAL PLANNING 2:
 If the task requires interaction with an object part (as opposed to the object as a whole), describe which part of the object would be most suitable for the gripper to interact with.
 Then, detect the necessary objects in the environment. Stop generation after this step to wait until you obtain the printed outputs from the detect_object function calls.
 
-INITIAL PLANNING 2:
+INITIAL PLANNING 3:
 Then, output Python code to decide which object to interact with, if there are multiple instances of the same object.
 Then, describe how best to approach the object (for example, approaching the midpoint of the object, or one of its edges, etc.), depending on the nature of the task, or the object dimensions, etc.
 Then, output a detailed step-by-step plan for the trajectory, including when to lower the gripper to make contact with the object, if necessary.
 Finally, perform each of these steps one by one. Name each trajectory variable with the trajectory number.
 Stop generation after each code block to wait for it to finish executing before continuing with your plan.
 
-INITIAL PLANNING 3: If there is a situation where you need to pick up an object, 
-you must first rotate the end effector so that it can grasp the narrow side of the object and then grasp the object.
 
 INITIAL PLANNING 4: 
 
