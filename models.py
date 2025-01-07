@@ -96,6 +96,7 @@ def get_chatgpt_output(model, new_prompt, messages, role, file=sys.stdout):
     print(role + ":", file=file)
     print(new_prompt, file=file)
     messages.append({"role":role, "content":new_prompt})
+    # llm에게 전달해줄 메세지를 편집해준다.
 
     client = OpenAI(api_key=api_key)
 
@@ -109,6 +110,7 @@ def get_chatgpt_output(model, new_prompt, messages, role, file=sys.stdout):
     print("assistant:", file=file)
 
     new_output = ""
+    # 변수 초기화
 
     for chunk in completion:
         chunk_content = chunk.choices[0].delta.content

@@ -84,6 +84,7 @@ OPEN_GRIPPER = 5
 CLOSE_GRIPPER = 6
 TASK_COMPLETED = 7
 RESET_ENVIRONMENT = 8
+# 멀티프로세싱 넘버(순차?)
 
 # Paths
 rgb_image_wrist_path = "./images/rgb_image_wrist.png"

@@ -34,6 +34,7 @@ from dotenv import load_dotenv
 
 load_dotenv("openaiAPI.env")
 api_key = os.getenv("api_key")
+# api_key가져오기
 
 if __name__ == "__main__":
 
@@ -63,7 +64,8 @@ if __name__ == "__main__":
     # Load models
     langsam_model = LangSAM()
     xmem_model = XMem(config.xmem_config, "./XMem/saves/XMem.pth", device).eval().to(device)
-
+    # 모델 로드
+    
     # API set-up
     main_connection, env_connection = Pipe()
     api = API(args, main_connection, logger, langsam_model, xmem_model, device)
@@ -73,12 +75,13 @@ if __name__ == "__main__":
     open_gripper = api.open_gripper
     close_gripper = api.close_gripper
     task_completed = api.task_completed
-
+    
+    
     # Start process
     env_process = Process(target=run_simulation_environment, name="EnvProcess", args=[args, env_connection, logger])
     env_process.start()
 
-    [env_connection_message] = main_connection.recv()
+    [env_connection_message] = main_connection.recv() # recv means receive data from main_connection
     logger.info(env_connection_message)
 
     # User input
@@ -88,14 +91,20 @@ if __name__ == "__main__":
     # ChatGPT
     logger.info(PROGRESS + "STARTING TASK..." + ENDC)
 
-    messages = []
+    messages = [] # get_chatgpt_output()에 있어도 상관없을
 
     error = False
 
     new_prompt = MAIN_PROMPT.replace("[INSERT EE POSITION]", str(config.ee_start_position)).replace("[INSERT TASK]", command)
+    # 메인 프롬프트에서 비어있는 곳을 수정한다.
+    # EE POSITION: config.ee_start_position, TASK: command
 
-    logger.info(PROGRESS + "Generating ChatGPT output..." + ENDC)
+
+    logger.info(PROGRESS + "Generating ChatGPT output..." + ENDC) #ENDC means that Enter
+
     messages = models.get_chatgpt_output(args.language_model, new_prompt, messages, "system")
+    # 언어 모델, 프롬프트를 정하여 정해준다.
+    
     logger.info(OK + "Finished generating ChatGPT output!" + ENDC)
 
     while True:
@@ -105,13 +114,15 @@ if __name__ == "__main__":
             new_prompt = ""
 
             if len(messages[-1]["content"].split("```python")) > 1:
-
+                # llm이 전달해준 메세지를 자른다. 
                 code_block = messages[-1]["content"].split("```python")
-
+                #   {"role": "assistant", "content": "```python\nprint('Hello, World!')\n```"} 꼴의 데이터에서 'Hello, World!'를 가져온다,
+                #   코드가 리턴되므로 코드 블럭이라는 변수에 저장해준다.
                 block_number = 0
-
+                
                 for block in code_block:
                     if len(block.split("```")) > 1:
+                        # 받은 
                         code = block.split("```")[0]
                         block_number += 1
                         try:
