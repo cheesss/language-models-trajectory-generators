@@ -76,6 +76,7 @@ if __name__ == "__main__":
     
     # API set-up
     main_connection, env_connection = Pipe()
+    # 얘가 핵심인듯
     api = API(args, main_connection, logger, langsam_model, xmem_model, device)
 
     detect_object = api.detect_object
@@ -139,6 +140,8 @@ if __name__ == "__main__":
                             with redirect_stdout(f):
                                 exec(code)
                     # 여기서 받은 코드를 실행하는듯 하다.
+                    # 만약 llm이 detect_object("box")를 실행하기로 결정한다면, 위에서 정의한 detect_object = api.detect_object가 실행된다.
+                    # 
                         except Exception:
                             error_message = traceback.format_exc()
                             new_prompt += ERROR_CORRECTION_PROMPT.replace("[INSERT BLOCK NUMBER]", str(block_number)).replace("[INSERT ERROR MESSAGE]", error_message)

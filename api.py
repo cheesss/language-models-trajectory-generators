@@ -120,7 +120,7 @@ class API:
 
         self.logger.info(PROGRESS + "Opening gripper..." + ENDC)
         self.main_connection.send([OPEN_GRIPPER])
-        # Pipe()에서 소켓에 오픈 그리퍼를 전달한다.
+        # Pipe()의 소켓에 오픈 그리퍼를 전달한다.
 
 
     def close_gripper(self):

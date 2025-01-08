@@ -5,6 +5,8 @@ from lang_sam import LangSAM
 from XMem.model.network import XMem
 import config
 import torch
+import multiprocessing
+import logging
 
 device = torch.device("cpu")
 xmem_model = XMem(config.xmem_config, "./XMem/saves/XMem.pth", device).eval().to(device)
