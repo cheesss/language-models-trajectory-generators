@@ -5,7 +5,7 @@ import math
 import config
 import models
 import utils
-import realsenseCapture
+from realsenseCapture import IntelCamera
 from PIL import Image
 from prompts.success_detection_prompt import SUCCESS_DETECTION_PROMPT
 from config import OK, PROGRESS, FAIL, ENDC
@@ -54,8 +54,9 @@ class API:
 
         # rgb_image_head = Image.open(config.rgb_image_head_path).convert("RGB")
         
+
         # realsense 적용코드
-        realsenseCapture.capture_save_image()
+        IntelCamera.capture_save_image()
         rgb_image_head_path = "/home/chohyunjun/language-models-trajectory-generators/captured_image.jpg"
         rgb_image_head = Image.open(rgb_image_head_path).convert("RGB")
 
