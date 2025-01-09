@@ -128,7 +128,13 @@ class Robot:
 
         if camera == "wrist":
             camera_position = p.getLinkState(self.id, self.ee_index, computeForwardKinematics=True)[0]
+            '''
+            id:로봇의 고유 아이디
+            eeindex:로봇의 상태
+            computeForwardKinematics: True로 설정하면 forward kinematics를 사용한 로봇의 위치와 방향 계산
+            '''
             camera_orientation_q = p.getLinkState(self.id, self.ee_index, computeForwardKinematics=True)[1]
+            # 걍 쿼터니안 형식일뿐 위랑 차이 없음
         elif camera == "head":
             camera_position = config.head_camera_position
             camera_orientation_q = p.getQuaternionFromEuler(config.head_camera_orientation_e)
@@ -148,7 +154,7 @@ class Robot:
         view_matrix = p.computeViewMatrix(camera_position, camera_position + camera_vector, up_vector)
 
         image = p.getCameraImage(config.image_width, config.image_height, viewMatrix=view_matrix, projectionMatrix=projection_matrix, renderer=p.ER_BULLET_HARDWARE_OPENGL)
-
+        
         rgb_buffer = image[2]
         depth_buffer = image[3]
 

@@ -77,6 +77,8 @@ if __name__ == "__main__":
     # API set-up
     main_connection, env_connection = Pipe()
     # 얘가 핵심인듯
+    # main_connection은 우리가 pybullet상에서 실행된 결과를 받기 위한 파이프 끝점이다.
+    # env_connection은 pybullet상에서 env_process가 pybullet상에서 실행된 결과를 보내기 위한 파이프 끝점이다.
     api = API(args, main_connection, logger, langsam_model, xmem_model, device)
 
     detect_object = api.detect_object
@@ -131,7 +133,7 @@ if __name__ == "__main__":
                 save_code_block_to_file(code_block)
                 for block in code_block:
                     if len(block.split("```")) > 1:
-                        # 받은 
+                        # 생성된 코드문을 받은 후, ''' -------''' 기준으로 쪼개 실행한다.
                         code = block.split("```")[0]
                         save_code_block_to_file(code)
                         block_number += 1
@@ -141,7 +143,6 @@ if __name__ == "__main__":
                                 exec(code)
                     # 여기서 받은 코드를 실행하는듯 하다.
                     # 만약 llm이 detect_object("box")를 실행하기로 결정한다면, 위에서 정의한 detect_object = api.detect_object가 실행된다.
-                    # 
                         except Exception:
                             error_message = traceback.format_exc()
                             new_prompt += ERROR_CORRECTION_PROMPT.replace("[INSERT BLOCK NUMBER]", str(block_number)).replace("[INSERT ERROR MESSAGE]", error_message)

@@ -5,10 +5,10 @@ import math
 import config
 import models
 import utils
+import realsenseCapture
 from PIL import Image
 from prompts.success_detection_prompt import SUCCESS_DETECTION_PROMPT
 from config import OK, PROGRESS, FAIL, ENDC
-
 from config import CAPTURE_IMAGES, ADD_BOUNDING_CUBES, ADD_TRAJECTORY_POINTS, EXECUTE_TRAJECTORY, OPEN_GRIPPER, CLOSE_GRIPPER, TASK_COMPLETED, RESET_ENVIRONMENT
 # 멀티프로세싱 넘버 불러오기
 
@@ -42,6 +42,9 @@ class API:
         self.logger.info(PROGRESS + "Capturing head and wrist camera images..." + ENDC)
         self.main_connection.send([CAPTURE_IMAGES])
         [head_camera_position, head_camera_orientation_q, wrist_camera_position, wrist_camera_orientation_q, env_connection_message] = self.main_connection.recv()
+        # main_connection.send([CAPTURE_IMAGES])를 통해 받은 env의 아웃풋을 5개의 변수에 저장해준다.
+        # 이를 위해 recv() 함수를 사용한다. = 출력값을 요구하는 함수
+
         self.logger.info(env_connection_message)
 
         self.head_camera_position = head_camera_position
@@ -49,7 +52,14 @@ class API:
         self.wrist_camera_position = wrist_camera_position
         self.wrist_camera_orientation_q = wrist_camera_orientation_q
 
-        rgb_image_head = Image.open(config.rgb_image_head_path).convert("RGB")
+        # rgb_image_head = Image.open(config.rgb_image_head_path).convert("RGB")
+        
+        # realsense 적용코드
+        realsenseCapture.capture_save_image()
+        rgb_image_head_path = "/home/chohyunjun/language-models-trajectory-generators/captured_image.jpg"
+        rgb_image_head = Image.open(rgb_image_head_path).convert("RGB")
+
+
         depth_image_head = Image.open(config.depth_image_head_path).convert("L")
         depth_array = np.array(depth_image_head) / 255.
 
