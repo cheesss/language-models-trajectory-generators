@@ -156,18 +156,25 @@ class Robot:
         image = p.getCameraImage(config.image_width, config.image_height, viewMatrix=view_matrix, projectionMatrix=projection_matrix, renderer=p.ER_BULLET_HARDWARE_OPENGL)
         
         rgb_buffer = image[2]
-        depth_buffer = image[3]
 
+        depth_buffer = image[3]
+        # list of float [0..width*height]
+        # https://stackoverflow.com/questions/6652253/getting-the-true-z-value-from-the-depth-buffer 해당 링크를 참고하면 이해가 쉽다.
+        # 
         if save_camera_image:
             rgb_image = Image.fromarray(rgb_buffer)
             rgb_image.save(rgb_image_path)
 
+            # =================================================================
+            # depth버퍼 실제 거리 데이터로 변환
             n = config.near_plane
             f = config.far_plane
             depth_array = 2 * n * f / (f + n - (2 * depth_buffer - 1.0) * (f - n))
 
             depth_array = np.clip(depth_array, 0, 1)
+            # depth_array의 범위를 클리핑하여 혹시모를 변수 제거
             depth_image = Image.fromarray(depth_array * 255)
+            # depth_image를 이미지로 변환
             depth_image.convert("L").save(depth_image_path)
 
         return camera_position, camera_orientation_q

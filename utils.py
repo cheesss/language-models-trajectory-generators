@@ -80,7 +80,7 @@ def save_xmem_image(masks):
 
 
 def get_bounding_cube_from_point_cloud(image, masks, depth_array, camera_position, camera_orientation_q, segmentation_count):
-
+    # depth 이미지 사용!
     image_width, image_height = image.size
 
     bounding_cubes = []
@@ -96,6 +96,7 @@ def get_bounding_cube_from_point_cloud(image, masks, depth_array, camera_positio
         if contour is not None:
 
             contour_pixel_points = [(c, r, depth_array[r][c]) for r in range(image_height) for c in range(image_width) if cv.pointPolygonTest(contour, (c, r), measureDist=False) == 1]
+            
             contour_world_points = [get_world_point_world_frame(camera_position, camera_orientation_q, "head", image, pixel_point) for pixel_point in contour_pixel_points]
             max_z_coordinate = np.max(np.array(contour_world_points)[:, 2])
             min_z_coordinate = np.min(np.array(contour_world_points)[:, 2])

@@ -63,7 +63,7 @@ class API:
 
         depth_image_head = Image.open(config.depth_image_head_path).convert("L")
         depth_array = np.array(depth_image_head) / 255.
-
+        # ndc데이터는 비선형이므로, 이를 실제 시각 거리로 바꿔준 후, 256개로 나눠 깊이를 직관적으로 볼 수 있게 바꾼다.
         if self.segmentation_count == 0:
             xmem_image = Image.fromarray(np.zeros_like(depth_array)).convert("L")
             xmem_image.save(config.xmem_input_path)
@@ -76,8 +76,10 @@ class API:
         self.logger.info(OK + "Finished segmenting head camera image!" + ENDC)
 
         masks = utils.get_segmentation_mask(model_predictions, config.segmentation_threshold)
+        # 예측결과를 이진화하여(True, False) 마스크 내부 예측 결과를 확정한다.
 
         bounding_cubes_world_coordinates, bounding_cubes_orientations = utils.get_bounding_cube_from_point_cloud(rgb_image_head, masks, depth_array, self.head_camera_position, self.head_camera_orientation_q, self.segmentation_count)
+        # 여기서 주는 depth array가 거리 관련 데이터인듯
 
         utils.save_xmem_image(masks)
 
@@ -85,6 +87,7 @@ class API:
 
         self.logger.info(PROGRESS + "Adding bounding cubes to the environment..." + ENDC)
         self.main_connection.send([ADD_BOUNDING_CUBES, bounding_cubes_world_coordinates])
+        # get_bounding_cube_from_point_cloud 함수에서 리턴 받은 box 정보를 env_connection에 전달하여 pybullet상에 반영
         [env_connection_message] = self.main_connection.recv()
         self.logger.info(env_connection_message)
 
@@ -184,7 +187,6 @@ class API:
                     object_mask = torch.Tensor(object_mask)
 
                     bounding_cubes, orientations = utils.get_bounding_cube_from_point_cloud(rgb_image, [object_mask], depth_array, self.head_camera_position, self.head_camera_orientation_q, object - 1)
-
                     if len(bounding_cubes) == 0:
 
                         self.logger.info("No bounding cube found: removed.")
