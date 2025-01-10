@@ -70,6 +70,8 @@ def run_simulation_environment(args, env_connection, logger):
 
     robot = Robot(args)
     robot.move(env, robot.ee_start_position, robot.ee_start_orientation_e, gripper_open=True, is_trajectory=False)
+    # pybullet을 이용한 시뮬레이션 구동
+
 
     env_connection_message = OK + "Finished setting up environment!" + ENDC
     env_connection.send([env_connection_message])
@@ -79,15 +81,21 @@ def run_simulation_environment(args, env_connection, logger):
         if env_connection.poll():
 
             env_connection_received = env_connection.recv()
+            # main_connection에서 보낸 요구사항 저장
 
             if env_connection_received[0] == CAPTURE_IMAGES:
-
-                _, _ = robot.get_camera_image("head", env, save_camera_image=True, rgb_image_path=config.rgb_image_trajectory_path.format(step=0), depth_image_path=config.depth_image_trajectory_path.format(step=0))
+                #CAPTURE_IMAGES받았을때 pybullet 시뮬레이션 상에서 두 카메라로 찍은 이미지를 전송해준다.
+                
+                # 아래 코드는 의미 없는거같아서 주석처리함
+                # _, _ = robot.get_camera_image("head", env, save_camera_image=True, rgb_image_path=config.rgb_image_trajectory_path.format(step=0), depth_image_path=config.depth_image_trajectory_path.format(step=0))
+                
                 head_camera_position, head_camera_orientation_q = robot.get_camera_image("head", env, save_camera_image=True, rgb_image_path=config.rgb_image_head_path, depth_image_path=config.depth_image_head_path)
                 wrist_camera_position, wrist_camera_orientation_q = robot.get_camera_image("wrist", env, save_camera_image=True, rgb_image_path=config.rgb_image_wrist_path, depth_image_path=config.depth_image_wrist_path)
+                # 아무래도 초기 카메라 위치 정보를 실제로 알아야 수정 가능할듯
 
                 env_connection_message = OK + "Finished capturing head camera image!" + ENDC
                 env_connection.send([head_camera_position, head_camera_orientation_q, wrist_camera_position, wrist_camera_orientation_q, env_connection_message])
+                # main_connection.recv()로 해당 값을 반환 받을 수 있다.
 
             elif env_connection_received[0] == ADD_BOUNDING_CUBES:
 

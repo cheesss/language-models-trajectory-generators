@@ -5,10 +5,10 @@ import math
 import config
 import models
 import utils
+from realsenseCapture import IntelCamera
 from PIL import Image
 from prompts.success_detection_prompt import SUCCESS_DETECTION_PROMPT
 from config import OK, PROGRESS, FAIL, ENDC
-
 from config import CAPTURE_IMAGES, ADD_BOUNDING_CUBES, ADD_TRAJECTORY_POINTS, EXECUTE_TRAJECTORY, OPEN_GRIPPER, CLOSE_GRIPPER, TASK_COMPLETED, RESET_ENVIRONMENT
 # 멀티프로세싱 넘버 불러오기
 
@@ -42,6 +42,9 @@ class API:
         self.logger.info(PROGRESS + "Capturing head and wrist camera images..." + ENDC)
         self.main_connection.send([CAPTURE_IMAGES])
         [head_camera_position, head_camera_orientation_q, wrist_camera_position, wrist_camera_orientation_q, env_connection_message] = self.main_connection.recv()
+        # main_connection.send([CAPTURE_IMAGES])를 통해 받은 env의 아웃풋을 5개의 변수에 저장해준다.
+        # 이를 위해 recv() 함수를 사용한다. = 출력값을 요구하는 함수
+
         self.logger.info(env_connection_message)
 
         self.head_camera_position = head_camera_position
@@ -49,10 +52,18 @@ class API:
         self.wrist_camera_position = wrist_camera_position
         self.wrist_camera_orientation_q = wrist_camera_orientation_q
 
-        rgb_image_head = Image.open(config.rgb_image_head_path).convert("RGB")
+        # rgb_image_head = Image.open(config.rgb_image_head_path).convert("RGB")
+        
+
+        # realsense 적용코드
+        IntelCamera.capture_save_image()
+        rgb_image_head_path = "/home/chohyunjun/language-models-trajectory-generators/captured_image.jpg"
+        rgb_image_head = Image.open(rgb_image_head_path).convert("RGB")
+
+
         depth_image_head = Image.open(config.depth_image_head_path).convert("L")
         depth_array = np.array(depth_image_head) / 255.
-
+        # ndc데이터는 비선형이므로, 이를 실제 시각 거리로 바꿔준 후, 256개로 나눠 깊이를 직관적으로 볼 수 있게 바꾼다.
         if self.segmentation_count == 0:
             xmem_image = Image.fromarray(np.zeros_like(depth_array)).convert("L")
             xmem_image.save(config.xmem_input_path)
@@ -65,8 +76,10 @@ class API:
         self.logger.info(OK + "Finished segmenting head camera image!" + ENDC)
 
         masks = utils.get_segmentation_mask(model_predictions, config.segmentation_threshold)
+        # 예측결과를 이진화하여(True, False) 마스크 내부 예측 결과를 확정한다.
 
         bounding_cubes_world_coordinates, bounding_cubes_orientations = utils.get_bounding_cube_from_point_cloud(rgb_image_head, masks, depth_array, self.head_camera_position, self.head_camera_orientation_q, self.segmentation_count)
+        # 여기서 주는 depth array가 거리 관련 데이터인듯
 
         utils.save_xmem_image(masks)
 
@@ -74,6 +87,7 @@ class API:
 
         self.logger.info(PROGRESS + "Adding bounding cubes to the environment..." + ENDC)
         self.main_connection.send([ADD_BOUNDING_CUBES, bounding_cubes_world_coordinates])
+        # get_bounding_cube_from_point_cloud 함수에서 리턴 받은 box 정보를 env_connection에 전달하여 pybullet상에 반영
         [env_connection_message] = self.main_connection.recv()
         self.logger.info(env_connection_message)
 
@@ -120,7 +134,7 @@ class API:
 
         self.logger.info(PROGRESS + "Opening gripper..." + ENDC)
         self.main_connection.send([OPEN_GRIPPER])
-        # Pipe()에서 소켓에 오픈 그리퍼를 전달한다.
+        # Pipe()의 소켓에 오픈 그리퍼를 전달한다.
 
 
     def close_gripper(self):
@@ -173,7 +187,6 @@ class API:
                     object_mask = torch.Tensor(object_mask)
 
                     bounding_cubes, orientations = utils.get_bounding_cube_from_point_cloud(rgb_image, [object_mask], depth_array, self.head_camera_position, self.head_camera_orientation_q, object - 1)
-
                     if len(bounding_cubes) == 0:
 
                         self.logger.info("No bounding cube found: removed.")
