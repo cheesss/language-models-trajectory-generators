@@ -52,13 +52,13 @@ class API:
         self.wrist_camera_position = wrist_camera_position
         self.wrist_camera_orientation_q = wrist_camera_orientation_q
 
-        # rgb_image_head = Image.open(config.rgb_image_head_path).convert("RGB")
+        rgb_image_head = Image.open(config.rgb_image_head_path).convert("RGB")
         
 
-        # realsense 적용코드
-        IntelCamera.capture_save_image()
-        rgb_image_head_path = "/home/chohyunjun/language-models-trajectory-generators/captured_image.jpg"
-        rgb_image_head = Image.open(rgb_image_head_path).convert("RGB")
+        # # realsense 적용코드
+        # IntelCamera.capture_save_image()
+        # rgb_image_head_path = "/home/chohyunjun/language-models-trajectory-generators/captured_image.jpg"
+        # rgb_image_head = Image.open(rgb_image_head_path).convert("RGB")
 
 
         depth_image_head = Image.open(config.depth_image_head_path).convert("L")
