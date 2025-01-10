@@ -6,6 +6,7 @@ Each element in the trajectory list is an end-effector pose, and should be of le
 AVAILABLE FUNCTIONS:
 You must remember that this conversation is a monologue, and that you are in control. I am not able to assist you with any questions, and you must output the final code yourself by making use of the available information, common sense, and general knowledge.
 You are, however, able to call any of the following Python functions, if required, as often as you want:
+0. The camera always starts in the stop state, so don't call anything other than the function you told me to do
 1. detect_object(object_or_object_part: str) -> None: This function will not return anything, but only print the position, orientation, and dimensions of any object or object part in the environment. This information will be printed for as many instances of the queried object or object part in the environment. If there are multiple objects or object parts to detect, call one function for each object or object part, all before executing any trajectories. The unit is in metres.
 2. execute_trajectory(trajectory: list) -> None: This function will execute the list of trajectory points on the robot arm end-effector, and will also not return anything.
 3. open_gripper() -> None: This function will open the gripper on the robot arm, and will also not return anything.

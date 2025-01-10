@@ -52,18 +52,21 @@ class API:
         self.wrist_camera_position = wrist_camera_position
         self.wrist_camera_orientation_q = wrist_camera_orientation_q
 
-        rgb_image_head = Image.open(config.rgb_image_head_path).convert("RGB")
-        
-
-        # # realsense 적용코드
-        # IntelCamera.capture_save_image()
-        # rgb_image_head_path = "/home/chohyunjun/language-models-trajectory-generators/captured_image.jpg"
-        # rgb_image_head = Image.open(rgb_image_head_path).convert("RGB")
+        # 원본 코드
+        # rgb_image_head = Image.open(config.rgb_image_head_path).convert("RGB")
+        # depth_image_head = Image.open(config.depth_image_head_path).convert("L")
 
 
-        depth_image_head = Image.open(config.depth_image_head_path).convert("L")
+        # realsense 적용코드
+        IntelCamera.capture_save_image(self)
+        rgb_image_head_path = "/home/chohyunjun/language-models-trajectory-generators/captured_image.jpg"
+        rgb_image_head = Image.open(rgb_image_head_path).convert("RGB")
+
+        depth_image_head_path = "/home/chohyunjun/language-models-trajectory-generators/captured_depth_image.jpg"
+        depth_image_head = Image.open(depth_image_head_path).convert("L")
         depth_array = np.array(depth_image_head) / 255.
         # ndc데이터는 비선형이므로, 이를 실제 시각 거리로 바꿔준 후, 256개로 나눠 깊이를 직관적으로 볼 수 있게 바꾼다.
+
         if self.segmentation_count == 0:
             xmem_image = Image.fromarray(np.zeros_like(depth_array)).convert("L")
             xmem_image.save(config.xmem_input_path)
