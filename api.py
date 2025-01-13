@@ -58,10 +58,10 @@ class API:
 
         # realsense 적용코드
         IntelCamera.capture_save_image()
-        rgb_image_head_path = config.Intel_rgb_image_head_path
+        rgb_image_head_path = config.rgb_image_head_path
         rgb_image_head = Image.open(rgb_image_head_path).convert("RGB")
 
-        depth_image_head_path = config.Intel_depth_image_head_path
+        depth_image_head_path = config.depth_image_head_path
         depth_image_head = Image.open(depth_image_head_path).convert("L")
         depth_array = np.array(depth_image_head) / 255
         # depth_array = depth_image_head

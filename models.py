@@ -64,7 +64,7 @@ def get_langsam_output(image, model, segmentation_texts, segmentation_count):
         f.write(f"logits: {logits}\n")
         f.write(f"phrases: {phrases}\n")
         f.write(f"boxes: {boxes}\n")
-        f.write(f"masks: {np.shape(masks)}\n")
+        f.write(f"masks: {masks}\n")
     print(np.shape(masks))
     _, ax = plt.subplots(1, 1 + len(masks), figsize=(5 + (5 * len(masks)), 5))
     [a.axis("off") for a in ax.flatten()]
@@ -79,6 +79,7 @@ def get_langsam_output(image, model, segmentation_texts, segmentation_count):
         colors1.append("red")
         colors2.append("cyan")
     logger.info("boxes length = "+str(count))
+    logger.info("boxes colors = "+str(colors1)+str(colors2))
 
 
 
