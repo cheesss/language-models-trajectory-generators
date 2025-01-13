@@ -19,14 +19,16 @@ class IntelCamera:
         depth_image_normalized = (depth_image / depth_scale).astype(np.float32)
         # depth_image_normalized = np.clip(depth_image_normalized, 0, 1)  # 클리핑
 
-        # PIL로 변환 후 저장
-        depth_image_pil = Image.fromarray(depth_image_normalized)
+        depth_image_uint8 = np.clip(depth_image_normalized * 255, 0, 255).astype(np.uint8)
+
+        # Convert NumPy array to PIL Image in grayscale ('L') mode
+        depth_image_pil = Image.fromarray(depth_image_uint8, mode='L')
+
+        # Save as JPEG
         depth_image_pil.save("captured_depth_image.jpg")
-        print("Depth image saved as 'captured_depth_image.png'")
-
-
+        print("Depth image saved as 'captured_depth_image.jpg'")
     
-    def capture_save_image(self):
+    def capture_save_image():
         pipeline = rs.pipeline()
         config = rs.config()
         
@@ -55,8 +57,8 @@ class IntelCamera:
             color_image = np.asanyarray(color_frame.get_data())
             depth_image = np.asanyarray(depth_frame.get_data())
 
-            threading.Thread(target=self.save_RGB_img, args=(color_image,)).start()
-            threading.Thread(target=self.save_Depth_img, args=(depth_image, depth_scale)).start()
+            threading.Thread(target=IntelCamera.save_RGB_img, args=(color_image,)).start()
+            threading.Thread(target=IntelCamera.save_Depth_img, args=(depth_image, depth_scale)).start()
 
             # 굳이 필요없음
             # cv2.imshow('Captured Image', color_image)

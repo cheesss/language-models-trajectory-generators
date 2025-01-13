@@ -56,16 +56,19 @@ class API:
         # rgb_image_head = Image.open(config.rgb_image_head_path).convert("RGB")
         # depth_image_head = Image.open(config.depth_image_head_path).convert("L")
 
-
         # realsense 적용코드
-        IntelCamera.capture_save_image(self)
-        rgb_image_head_path = "/home/chohyunjun/language-models-trajectory-generators/captured_image.jpg"
+        IntelCamera.capture_save_image()
+        rgb_image_head_path = config.Intel_rgb_image_head_path
         rgb_image_head = Image.open(rgb_image_head_path).convert("RGB")
 
-        depth_image_head_path = "/home/chohyunjun/language-models-trajectory-generators/captured_depth_image.jpg"
+        depth_image_head_path = config.Intel_depth_image_head_path
         depth_image_head = Image.open(depth_image_head_path).convert("L")
-        depth_array = np.array(depth_image_head) / 255.
+        depth_array = np.array(depth_image_head) / 255
+        # depth_array = depth_image_head
+        self.logger.info("depth_array min is "+str(np.average(depth_array)))
         # ndc데이터는 비선형이므로, 이를 실제 시각 거리로 바꿔준 후, 256개로 나눠 깊이를 직관적으로 볼 수 있게 바꾼다.
+
+
 
         if self.segmentation_count == 0:
             xmem_image = Image.fromarray(np.zeros_like(depth_array)).convert("L")
@@ -79,6 +82,8 @@ class API:
         self.logger.info(OK + "Finished segmenting head camera image!" + ENDC)
 
         masks = utils.get_segmentation_mask(model_predictions, config.segmentation_threshold)
+        self.logger.info("mask reasult is "+ str(masks))
+
         # 예측결과를 이진화하여(True, False) 마스크 내부 예측 결과를 확정한다.
 
         bounding_cubes_world_coordinates, bounding_cubes_orientations = utils.get_bounding_cube_from_point_cloud(rgb_image_head, masks, depth_array, self.head_camera_position, self.head_camera_orientation_q, self.segmentation_count)
@@ -90,6 +95,7 @@ class API:
 
         self.logger.info(PROGRESS + "Adding bounding cubes to the environment..." + ENDC)
         self.main_connection.send([ADD_BOUNDING_CUBES, bounding_cubes_world_coordinates])
+        # main_connection.send([ADD_BOUNDING_CUBES, bounding_cubes_world_coordinates])를 통해 env_connection에 bounding_cubes_world_coordinates 전송
         # get_bounding_cube_from_point_cloud 함수에서 리턴 받은 box 정보를 env_connection에 전달하여 pybullet상에 반영
         [env_connection_message] = self.main_connection.recv()
         self.logger.info(env_connection_message)

@@ -25,7 +25,7 @@ class Environment:
         # object_start_orientation_q = p.getQuaternionFromEuler(config.object_start_orientation_e)
         # object_model = p.loadURDF("ycb_assets/005_tomato_soup_can.urdf",object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
 
-
+        
         object_start_position = [random.uniform(-0.2, 0.2), random.uniform(0.4, 0.8), 0.1]
         object_start_orientation_e = [0.0, 0.0, random.uniform(-math.pi, math.pi)]
         object_start_orientation_q = p.getQuaternionFromEuler(object_start_orientation_e)
@@ -67,12 +67,11 @@ def run_simulation_environment(args, env_connection, logger):
 
     env = Environment(args)
     env.load()
+    # 물체 소환
 
     robot = Robot(args)
     robot.move(env, robot.ee_start_position, robot.ee_start_orientation_e, gripper_open=True, is_trajectory=False)
-    # pybullet을 이용한 시뮬레이션 구동
-
-
+    # pybullet을 이용한 시뮬레이션 구동 is_trajectory = False인 이유는, 목표점을 향하는 단계가 아니라 처음 실행하는 단계이므로 trajectory_step를 갱신하지 않기 위해서이다.
     env_connection_message = OK + "Finished setting up environment!" + ENDC
     env_connection.send([env_connection_message])
 
@@ -100,7 +99,8 @@ def run_simulation_environment(args, env_connection, logger):
             elif env_connection_received[0] == ADD_BOUNDING_CUBES:
 
                 bounding_cubes_world_coordinates = env_connection_received[1]
-
+                # env_connection_received[0]는 ADD_BOUNDING_CUBES이고, env_connection_received[1]은 box cordinates이다.ounding_cube_world_coordinates[1], [0, 1, 0], lif
+                
                 for bounding_cube_world_coordinates in bounding_cubes_world_coordinates:
                     p.addUserDebugLine(bounding_cube_world_coordinates[0], bounding_cube_world_coordinates[1], [0, 1, 0], lifeTime=0)
                     p.addUserDebugLine(bounding_cube_world_coordinates[1], bounding_cube_world_coordinates[2], [0, 1, 0], lifeTime=0)

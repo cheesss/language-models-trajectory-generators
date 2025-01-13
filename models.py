@@ -10,6 +10,7 @@ from torchvision.utils import draw_bounding_boxes, draw_segmentation_masks
 from dotenv import load_dotenv
 import os
 import json
+import multiprocessing
 
 
 sys.path.append("./XMem/")
@@ -25,6 +26,11 @@ logging.basicConfig(
     handlers=[logging.StreamHandler()]  # 콘솔 출력 핸들러
 )
 logger = logging.getLogger(__name__)
+
+
+
+logger = multiprocessing.log_to_stderr()
+logger.setLevel(logging.INFO)
 
 
 
@@ -51,16 +57,30 @@ def get_langsam_output(image, model, segmentation_texts, segmentation_count):
     boxes = [item['boxes'] for item in result_dict]
     masks = [item['masks'] for item in result_dict]
 
+    logger.info("boxes length = "+ str(len(boxes)))
+
     output_file = "output_data.txt"
     with open(output_file, "w") as f:
         f.write(f"logits: {logits}\n")
         f.write(f"phrases: {phrases}\n")
         f.write(f"boxes: {boxes}\n")
-        f.write(f"masks: {masks}\n")
-
+        f.write(f"masks: {np.shape(masks)}\n")
+    print(np.shape(masks))
     _, ax = plt.subplots(1, 1 + len(masks), figsize=(5 + (5 * len(masks)), 5))
     [a.axis("off") for a in ax.flatten()]
     ax[0].imshow(image)
+
+
+
+    count = sum(len(sublist) for sublist in boxes)
+    colors1 = []
+    colors2 = []
+    for i in range(count):
+        colors1.append("red")
+        colors2.append("cyan")
+    logger.info("boxes length = "+str(count))
+
+
 
     for i, (mask, box, phrase) in enumerate(zip(masks, boxes, phrases)):
         to_tensor = transforms.PILToTensor()
@@ -69,17 +89,17 @@ def get_langsam_output(image, model, segmentation_texts, segmentation_count):
         # logger.info(box.shape)
         # box = box.unsqueeze(dim=0)
         # logger.info(box.shape)
-
         # 물체 개수가 변하면 아래 색깔 개수를 바꿔줘야한다.
-        image_tensor = draw_bounding_boxes(image_tensor, box, colors=["red","red","red"], width=3)
+        image_tensor = draw_bounding_boxes(image_tensor, box, colors=colors1, width=3)
         mask = torch.tensor(mask)
         mask = mask.bool()
-        image_tensor = draw_segmentation_masks(image_tensor, mask, alpha=0.5, colors=["cyan","cyan","cyan"])
+        image_tensor = draw_segmentation_masks(image_tensor, mask, alpha=0.5, colors=colors2)
         to_pil_image = transforms.ToPILImage()
         image_pil = to_pil_image(image_tensor)
 
         ax[1 + i].imshow(image_pil)
         ax[1 + i].text(box[0][0], box[0][1] - 15, phrase, color="red", bbox={"facecolor":"white", "edgecolor":"red", "boxstyle":"square"})
+
 
     plt.savefig(config.langsam_image_path.format(object=segmentation_count))
     plt.show()

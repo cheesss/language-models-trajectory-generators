@@ -46,6 +46,7 @@ image_width = 256
 image_height = 256
 
 head_camera_position = [0.0, 1.2, 0.6]
+
 head_camera_orientation_e = [0.0, 5 * math.pi / 6, -math.pi / 2]
 
 camera_distance = 0.8
@@ -91,6 +92,11 @@ rgb_image_wrist_path = "./images/rgb_image_wrist.png"
 depth_image_wrist_path = "./images/depth_image_wrist.png"
 rgb_image_head_path = "./images/rgb_image_head.png"
 depth_image_head_path = "./images/depth_image_head.png"
+
+Intel_rgb_image_head_path = "./captured_image.jpg"
+Intel_depth_image_head_path = "./captured_depth_image.jpg"
+
+
 rgb_image_trajectory_path = "./images/trajectory/rgb_image_{step}.png"
 depth_image_trajectory_path = "./images/trajectory/depth_image_{step}.png"
 bounding_cube_mask_image_path = "./images/bounding_cube_mask_{object}_{mask}.png"
