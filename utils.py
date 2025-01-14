@@ -8,6 +8,10 @@ import config
 from PIL import Image
 from torchvision.utils import save_image
 from shapely.geometry import MultiPoint, Polygon, polygon
+import multiprocessing
+import logging
+logger = multiprocessing.log_to_stderr()
+logger.setLevel(logging.INFO)
 
 def get_segmentation_mask(model_predictions, segmentation_threshold):
 
@@ -82,6 +86,8 @@ def save_xmem_image(masks):
 def get_bounding_cube_from_point_cloud(image, masks, depth_array, camera_position, camera_orientation_q, segmentation_count):
     # depth 이미지 사용!
     image_width, image_height = image.size
+    # plt.imshow(image)
+    # plt.show(image)
 
     bounding_cubes = []
     bounding_cubes_orientations = []
@@ -101,8 +107,9 @@ def get_bounding_cube_from_point_cloud(image, masks, depth_array, camera_positio
             max_z_coordinate = np.max(np.array(contour_world_points)[:, 2])
             min_z_coordinate = np.min(np.array(contour_world_points)[:, 2])
             top_surface_world_points = [world_point for world_point in contour_world_points if world_point[2] > max_z_coordinate - config.depth_offset]
-
+            logging.info("Top surface world points"+str(top_surface_world_points))
             rect = MultiPoint([world_point[:2] for world_point in top_surface_world_points]).minimum_rotated_rectangle
+            logging.info("Rectangle"+str(rect))
             if isinstance(rect, Polygon):
                 rect = polygon.orient(rect, sign=-1)
                 box = rect.exterior.coords
@@ -131,6 +138,7 @@ def get_world_point_world_frame(camera_position, camera_orientation_q, camera, i
     image_width, image_height = image.size
 
     K, Rt = get_intrinsics_extrinsics(image_height, camera_position, camera_orientation_q)
+    logging.info("Rt: "+ str(Rt))
 
     pixel_point = np.array([[point[0] - (image_width / 2)], [(image_height / 2) - point[1]], [1.0]])
 

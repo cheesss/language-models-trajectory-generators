@@ -38,11 +38,13 @@ from XMem.inference.inference_core import InferenceCore
 from XMem.inference.interact.interactive_utils import image_to_torch, index_numpy_to_one_hot_torch, torch_prob_to_numpy_mask, overlay_davis
 
 def get_langsam_output(image, model, segmentation_texts, segmentation_count):
+    print("segmentation_texts:", segmentation_texts)
+    print(type(segmentation_texts))
 
     segmentation_texts = " . ".join(segmentation_texts)
 
     # masks, boxes, phrases, logits = model.predict(image, segmentation_texts)
-    data= model.predict(image, segmentation_texts)
+    data= model.predict(image, text_prompts=segmentation_texts,box_threshold=0.4, text_threshold=0.3)
     output_file_txt = "model_output.txt"
     with open(output_file_txt, "w") as f:
         f.write(str(data))
@@ -165,7 +167,7 @@ def get_xmem_output(model, device, trajectory_length):
 
         for i in range(0, trajectory_length + 1, config.xmem_output_every):
 
-            frame = np.array(Image.open(config.rgb_image_trajectory_path.format(step=i)).convert("RGB"))
+            frame = np.array(Image.open(config.rgb_image_head_path).convert("RGB"))
 
             frame_torch, _ = image_to_torch(frame, device)
             if i == 0:

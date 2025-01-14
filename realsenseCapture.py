@@ -43,7 +43,7 @@ class IntelCamera:
             # pipeline.start(config)
 
             # 프레임 읽기
-            for _ in range(30):
+            for _ in range(20):
                 frames = pipeline.wait_for_frames()
                 frames = align.process(frames)
                 color_frame = frames.get_color_frame()
@@ -51,29 +51,18 @@ class IntelCamera:
 
             if not color_frame:
                 print("No color frame captured!")
-                return
 
             color_image = np.asanyarray(color_frame.get_data())
-            # depth_image = np.asanyarray(depth_frame.get_data())
-            colorizer = rs.colorizer(color_scheme = 2)
-            colored_depth_frame = colorizer.colorize(depth_frame)
-            colored_depth_image = np.asanyarray(colored_depth_frame.get_data())
-            threading.Thread(target=IntelCamera.save_RGB_img, args=(color_image,)).start()
-            threading.Thread(target=IntelCamera.save_Depth_img, args=(colored_depth_image,)).start()
-
-            # 굳이 필요없음
+            depth_image = np.asanyarray(depth_frame.get_data())
+            alpha_channel = np.full((color_image.shape[0], color_image.shape[1], 1), 255, dtype=np.uint8)
+            rgba_image = np.concatenate((color_image, alpha_channel), axis=-1)
             # cv2.imshow('Captured Image', color_image)
-
-            # while True:
-            #     key = cv2.waitKey(1) 
-            #     if key == 27:  # ESC 키를 누르면 종료
-            #         break
-            #     if cv2.getWindowProperty('Captured Image', cv2.WND_PROP_VISIBLE) < 1:
-            #         break
-
-            # # 창 닫기
-            # cv2.destroyAllWindows()
-
+            threading.Thread(target=IntelCamera.save_RGB_img, args=(color_image,)).start()
+            threading.Thread(target=IntelCamera.save_Depth_img, args=(depth_image,)).start()
+            return rgba_image, depth_image
     # 리턴값 없이 촬영한 사진을 저장한 후 불러와 사용한다.
         finally:
             pipeline.stop()
+            
+            
+a = IntelCamera.capture_save_image()

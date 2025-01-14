@@ -98,8 +98,8 @@ rgb_image_head_path = "./captured_image.png"
 depth_image_head_path = "./captured_depth_image.png"
 
 
-rgb_image_trajectory_path = "./images/trajectory/rgb_image_{step}.png"
-depth_image_trajectory_path = "./images/trajectory/depth_image_{step}.png"
+# rgb_image_trajectory_path = "./images/trajectory/rgb_image_{step}.png"
+# depth_image_trajectory_path = "./images/trajectory/depth_image_{step}.png"
 bounding_cube_mask_image_path = "./images/bounding_cube_mask_{object}_{mask}.png"
 bounding_cube_image_path = "./images/bounding_cube_image_{object}.png"
 

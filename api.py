@@ -78,6 +78,7 @@ class API:
 
         self.logger.info(PROGRESS + "Segmenting head camera image..." + ENDC)
         # print("this is test", rgb_image_head, self.langsam_model, segmentation_texts, self.segmentation_count)
+        self.logger.info("segmantation_texts: " + str(segmentation_texts)+ str(type(segmentation_texts)))
         model_predictions, boxes, segmentation_texts = models.get_langsam_output(rgb_image_head, self.langsam_model, segmentation_texts, self.segmentation_count)
         self.logger.info(OK + "Finished segmenting head camera image!" + ENDC)
 
@@ -88,6 +89,7 @@ class API:
 
         bounding_cubes_world_coordinates, bounding_cubes_orientations = utils.get_bounding_cube_from_point_cloud(rgb_image_head, masks, depth_array, self.head_camera_position, self.head_camera_orientation_q, self.segmentation_count)
         # 여기서 주는 depth array가 거리 관련 데이터인듯
+        self.logger.info("bounding_cubes_world_coordinates: "+str(bounding_cubes_world_coordinates))
 
         utils.save_xmem_image(masks)
 
@@ -186,8 +188,8 @@ class API:
 
                 for i, mask in enumerate(masks):
 
-                    rgb_image = Image.open(config.rgb_image_trajectory_path.format(step=i * config.xmem_output_every)).convert("RGB")
-                    depth_image = Image.open(config.depth_image_trajectory_path.format(step=i * config.xmem_output_every)).convert("L")
+                    rgb_image = Image.open(config.rgb_image_head_path).convert("RGB")
+                    depth_image = Image.open(config.depth_image_head_path).convert("L")
                     depth_array = np.array(depth_image) / 255.
 
                     object_mask = mask.copy()
