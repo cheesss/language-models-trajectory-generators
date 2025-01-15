@@ -44,7 +44,7 @@ def get_langsam_output(image, model, segmentation_texts, segmentation_count):
     segmentation_texts = " . ".join(segmentation_texts)
 
     # masks, boxes, phrases, logits = model.predict(image, segmentation_texts)
-    data= model.predict(image, text_prompts=segmentation_texts,box_threshold=0.4, text_threshold=0.3)
+    data= model.predict(images_pil=image, texts_prompt=segmentation_texts)
     output_file_txt = "model_output.txt"
     with open(output_file_txt, "w") as f:
         f.write(str(data))

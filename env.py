@@ -20,7 +20,7 @@ class Environment:
     def load(self):
 
         p.resetDebugVisualizerCamera(config.camera_distance, config.camera_yaw, config.camera_pitch, config.camera_target_position)
-
+        # 시작 시 카메라 뷰 설정
         object_start_position = config.object_start_position
         # object_start_orientation_q = p.getQuaternionFromEuler(config.object_start_orientation_e)
         # object_model = p.loadURDF("ycb_assets/005_tomato_soup_can.urdf",object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)

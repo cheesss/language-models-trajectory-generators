@@ -10,6 +10,8 @@ from torchvision.utils import save_image
 from shapely.geometry import MultiPoint, Polygon, polygon
 import multiprocessing
 import logging
+import pyrealsense2 as rs
+
 logger = multiprocessing.log_to_stderr()
 logger.setLevel(logging.INFO)
 
@@ -32,7 +34,8 @@ def get_max_contour(image, image_width, image_height):
 
     ret, thresh = cv.threshold(image, 127, 255, 0)
     contours, hierarchy = cv.findContours(thresh, 1, 2)
-
+    # print("Contours:", contours)
+    # Contour 는 정상적으로 만들어지고있다.
     contour_index = None
     max_length = 0
     for c, contour in enumerate(contours):
@@ -43,22 +46,41 @@ def get_max_contour(image, image_width, image_height):
 
     if contour_index is None:
         return None
-
+    # contour index 는 이미지에 있는 물체 개수에 따라 달라진다. 테두리가 구분되는 물체개수이므로....
+    # print("Contours[contour_index]: ", contours[contour_index])
     return contours[contour_index]
+    # contours[contour_index]는 정상 출력되고있다.
 
 
+def get_intrinsics_extrinsics(pipeline, image_height, camera_position, camera_orientation_q):
+    profile = pipeline.get_active_profile()
+    stream = profile.get_stream(rs.stream.color)
+    intrinsics = stream.as_video_stream_profile().get_intrinsics()
 
-def get_intrinsics_extrinsics(image_height, camera_position, camera_orientation_q):
-
-    fov = (config.fov / 360) * 2 * math.pi
-    f_x = f_y = image_height / (2 * math.tan(fov / 2))
-    K = np.array([[f_x, 0, 0], [0, f_y, 0], [0, 0, 1]])
+    K = np.array([
+        [intrinsics.fx, 0, intrinsics.ppx],
+        [0, intrinsics.fy, intrinsics.ppy],
+        [0, 0, 1]
+    ])
 
     R = np.array(p.getMatrixFromQuaternion(camera_orientation_q)).reshape(3, 3)
     Rt = np.hstack((R, np.array(camera_position).reshape(3, 1)))
     Rt = np.vstack((Rt, np.array([0, 0, 0, 1])))
 
     return K, Rt
+
+# def get_intrinsics_extrinsics(image_height, camera_position, camera_orientation_q):
+
+    # fov = (config.fov / 360) * 2 * math.pi
+    # f_x = f_y = image_height / (2 * math.tan(fov / 2))
+    # K = np.array([[f_x, 0, 0], [0, f_y, 0], [0, 0, 1]])
+
+    # R = np.array(p.getMatrixFromQuaternion(camera_orientation_q)).reshape(3, 3)
+    # Rt = np.hstack((R, np.array(camera_position).reshape(3, 1)))
+    # Rt = np.vstack((Rt, np.array([0, 0, 0, 1])))
+
+
+    # return K, Rt
 
 
 
@@ -83,7 +105,7 @@ def save_xmem_image(masks):
 
 
 
-def get_bounding_cube_from_point_cloud(image, masks, depth_array, camera_position, camera_orientation_q, segmentation_count):
+def get_bounding_cube_from_point_cloud(pipeline, image, masks, depth_array, camera_position, camera_orientation_q, segmentation_count):
     # depth 이미지 사용!
     image_width, image_height = image.size
     # plt.imshow(image)
@@ -96,20 +118,30 @@ def get_bounding_cube_from_point_cloud(image, masks, depth_array, camera_positio
 
         save_image(mask, config.bounding_cube_mask_image_path.format(object=segmentation_count, mask=i))
         mask_np = cv.imread(config.bounding_cube_mask_image_path.format(object=segmentation_count, mask=i), cv.IMREAD_GRAYSCALE)
-
+        plt.imshow(mask_np, cmap='gray')
+        plt.title("Mask Image")
+        plt.show()
         contour = get_max_contour(mask_np, image_width, image_height)
-
+        # 컨투어 값은 잘 가져오고있다.
         if contour is not None:
 
             contour_pixel_points = [(c, r, depth_array[r][c]) for r in range(image_height) for c in range(image_width) if cv.pointPolygonTest(contour, (c, r), measureDist=False) == 1]
-            
-            contour_world_points = [get_world_point_world_frame(camera_position, camera_orientation_q, "head", image, pixel_point) for pixel_point in contour_pixel_points]
+            # print('Contour_pixel_points: ', contour_pixel_points)
+            # contour_pixel_points 또한 정상 출력되고있다.
+            contour_world_points = [get_world_point_world_frame(pipeline, camera_position, camera_orientation_q, "head", image, pixel_point) for pixel_point in contour_pixel_points]
+            # print("Contour world points", contour_world_points)
+            # 얘도 아마 정상 출력인듯
             max_z_coordinate = np.max(np.array(contour_world_points)[:, 2])
+            print("Max_z_coordinate", max_z_coordinate)
             min_z_coordinate = np.min(np.array(contour_world_points)[:, 2])
-            top_surface_world_points = [world_point for world_point in contour_world_points if world_point[2] > max_z_coordinate - config.depth_offset]
-            logging.info("Top surface world points"+str(top_surface_world_points))
+            print("min_z_cord: ",min_z_coordinate)
+            depth_offset = max_z_coordinate - min_z_coordinate
+            # depth_offset = 0.08
+            top_surface_world_points = [world_point for world_point in contour_world_points if world_point[2] > max_z_coordinate - depth_offset]
+            # logging.info("Top surface world points"+str(top_surface_world_points))
             rect = MultiPoint([world_point[:2] for world_point in top_surface_world_points]).minimum_rotated_rectangle
-            logging.info("Rectangle"+str(rect))
+            # logging.info("Rectangle"+str(rect))
+            print(isinstance(rect, Polygon))
             if isinstance(rect, Polygon):
                 rect = polygon.orient(rect, sign=-1)
                 box = rect.exterior.coords
@@ -129,16 +161,16 @@ def get_bounding_cube_from_point_cloud(image, masks, depth_array, camera_positio
 
     bounding_cubes = np.array(bounding_cubes)
 
-    return bounding_cubes, bounding_cubes_orientations
+    return bounding_cubes, bounding_cubes_orientations, depth_offset
 
 
 
-def get_world_point_world_frame(camera_position, camera_orientation_q, camera, image, point):
+def get_world_point_world_frame(pipeline, camera_position, camera_orientation_q, camera, image, point):
 
     image_width, image_height = image.size
 
-    K, Rt = get_intrinsics_extrinsics(image_height, camera_position, camera_orientation_q)
-    logging.info("Rt: "+ str(Rt))
+    K, Rt = get_intrinsics_extrinsics(pipeline, image_height=image_height, camera_position=camera_position, camera_orientation_q=camera_orientation_q)
+    # print(Rt[0])
 
     pixel_point = np.array([[point[0] - (image_width / 2)], [(image_height / 2) - point[1]], [1.0]])
 
