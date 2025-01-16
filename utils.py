@@ -11,6 +11,10 @@ from shapely.geometry import MultiPoint, Polygon, polygon
 import multiprocessing
 import logging
 import pyrealsense2 as rs
+import open3d as o3d
+
+depth_scale = 0.0010000000474974513
+
 
 logger = multiprocessing.log_to_stderr()
 logger.setLevel(logging.INFO)
@@ -89,7 +93,7 @@ def save_xmem_image(masks):
     xmem_array = np.array(Image.open(config.xmem_input_path).convert("L"))
     xmem_array = np.unique(xmem_array, return_inverse=True)[1].reshape(xmem_array.shape)
 
-    # for mask in masks:
+    # for mask in masks: 오류가 발생하여 그냥 지움
     #     # mask 차원 확인 및 변환
     #     mask_np = mask.detach().cpu().numpy()
     #     if mask_np.ndim == 3:
@@ -105,7 +109,7 @@ def save_xmem_image(masks):
 
 
 
-def get_bounding_cube_from_point_cloud(pipeline, image, masks, depth_array, camera_position, camera_orientation_q, segmentation_count):
+def get_bounding_cube_from_point_cloud( image, masks, depth_array, camera_position, camera_orientation_q, depth_image, depth_intrinsics, segmentation_count):
     # depth 이미지 사용!
     image_width, image_height = image.size
     # plt.imshow(image)
@@ -113,7 +117,8 @@ def get_bounding_cube_from_point_cloud(pipeline, image, masks, depth_array, came
 
     bounding_cubes = []
     bounding_cubes_orientations = []
-
+    depth_in_meters = depth_image.astype(np.float32)
+    # * depth_scale
     for i, mask in enumerate(masks):
 
         save_image(mask, config.bounding_cube_mask_image_path.format(object=segmentation_count, mask=i))
@@ -125,17 +130,44 @@ def get_bounding_cube_from_point_cloud(pipeline, image, masks, depth_array, came
         # 컨투어 값은 잘 가져오고있다.
         if contour is not None:
 
-            contour_pixel_points = [(c, r, depth_array[r][c]) for r in range(image_height) for c in range(image_width) if cv.pointPolygonTest(contour, (c, r), measureDist=False) == 1]
+            contour_pixel_points = [(c, r, depth_array[c][r]) for r in range(image_height) for c in range(image_width) if cv.pointPolygonTest(contour, (r, c), measureDist=False) == 1]
             # print('Contour_pixel_points: ', contour_pixel_points)
             # contour_pixel_points 또한 정상 출력되고있다.
-            contour_world_points = [get_world_point_world_frame(pipeline, camera_position, camera_orientation_q, "head", image, pixel_point) for pixel_point in contour_pixel_points]
+
+            # 원본코드
+            # contour_world_points = [get_world_point_world_frame(pipeline, camera_position, camera_orientation_q, "head", image, pixel_point) for pixel_point in contour_pixel_points]
+            
+
+            # -------------------------------- 수정코드
+            # print('Contour_world_points shape: ', contour_pixel_points.shape)
+            contour_world_points = []
+            for pixel_point in contour_pixel_points:
+                c, r, depth = pixel_point
+                if depth > 0:
+                    print("c, r: ", c, r)
+                    world_point = rs.rs2_deproject_pixel_to_point(depth_intrinsics, [c, r], (depth_image[c][r])*depth_scale)
+                    
+                    contour_world_points.append(world_point)
+
+            if len(contour_world_points) == 0:
+                continue
+            
+            contour_world_points = np.array(contour_world_points)
+            # print("Contour world points: ", contour_world_points)
+            # --------------------------------
+            
+            contour_world_points = outier_removed_point_cloud(contour_world_points)
+            contour_world_points = np.asarray(contour_world_points.points)
+
+
+
             # print("Contour world points", contour_world_points)
             # 얘도 아마 정상 출력인듯
-            max_z_coordinate = np.max(np.array(contour_world_points)[:, 2])
-            print("Max_z_coordinate", max_z_coordinate)
-            min_z_coordinate = np.min(np.array(contour_world_points)[:, 2])
-            print("min_z_cord: ",min_z_coordinate)
-            depth_offset = max_z_coordinate - min_z_coordinate
+            max_z_coordinate = np.max((contour_world_points)[:, 2])
+            # print("Max_z_coordinate", max_z_coordinate)
+            min_z_coordinate = np.min((contour_world_points)[:, 2])
+            # print("min_z_cord: ",min_z_coordinate)
+            depth_offset = 0.03
             # depth_offset = 0.08
             top_surface_world_points = [world_point for world_point in contour_world_points if world_point[2] > max_z_coordinate - depth_offset]
             # logging.info("Top surface world points"+str(top_surface_world_points))
@@ -161,10 +193,11 @@ def get_bounding_cube_from_point_cloud(pipeline, image, masks, depth_array, came
 
     bounding_cubes = np.array(bounding_cubes)
 
-    return bounding_cubes, bounding_cubes_orientations, depth_offset
+    return bounding_cubes, bounding_cubes_orientations, contour_pixel_points
 
 
 
+# 얘는 안쓴다
 def get_world_point_world_frame(pipeline, camera_position, camera_orientation_q, camera, image, point):
 
     image_width, image_height = image.size
@@ -184,3 +217,16 @@ def get_world_point_world_frame(pipeline, camera_position, camera_orientation_q,
     world_point_world_frame = world_point_world_frame.squeeze()[:-1]
 
     return world_point_world_frame
+
+
+
+def outier_removed_point_cloud(points):
+    point_cloud = o3d.geometry.PointCloud()
+    point_cloud.points = o3d.utility.Vector3dVector(points)
+    voxel_down_pcd = point_cloud.voxel_down_sample(voxel_size=0.005)
+    cl, ind = voxel_down_pcd.remove_statistical_outlier(nb_neighbors=20, std_ratio=2.0)
+    inlier_cloud = voxel_down_pcd.select_by_index(ind)
+    # 포인트 클라우드 시각화
+    o3d.visualization.draw_geometries([inlier_cloud])
+
+    return inlier_cloud

@@ -12,6 +12,7 @@ from config import OK, PROGRESS, FAIL, ENDC
 from config import CAPTURE_IMAGES, ADD_BOUNDING_CUBES, ADD_TRAJECTORY_POINTS, EXECUTE_TRAJECTORY, OPEN_GRIPPER, CLOSE_GRIPPER, TASK_COMPLETED, RESET_ENVIRONMENT
 # 멀티프로세싱 넘버 불러오기
 
+depth_scale = 0.0010000000474974513
 
 class API:
 
@@ -57,15 +58,15 @@ class API:
         # depth_image_head = Image.open(config.depth_image_head_path).convert("L")
 
         # realsense 적용코드
-        IntelCamera.capture_save_image()
+        rgba_image, depth_image, depth_intrinsics = IntelCamera.capture_save_image()
         rgb_image_head_path = config.rgb_image_head_path
         rgb_image_head = Image.open(rgb_image_head_path).convert("RGB")
 
         depth_image_head_path = config.depth_image_head_path
         depth_image_head = Image.open(depth_image_head_path).convert("L")
-        depth_array = np.array(depth_image_head) / 255
+        depth_array = np.array(depth_image_head) * depth_scale
         # depth_array = depth_image_head
-        self.logger.info("depth_array min is "+str(np.average(depth_array)))
+        # self.logger.info("depth_array min is "+str(np.average(depth_array)))
         # ndc데이터는 비선형이므로, 이를 실제 시각 거리로 바꿔준 후, 256개로 나눠 깊이를 직관적으로 볼 수 있게 바꾼다.
 
 
@@ -78,18 +79,18 @@ class API:
 
         self.logger.info(PROGRESS + "Segmenting head camera image..." + ENDC)
         # print("this is test", rgb_image_head, self.langsam_model, segmentation_texts, self.segmentation_count)
-        self.logger.info("segmantation_texts: " + str(segmentation_texts)+ str(type(segmentation_texts)))
+        # self.logger.info("segmantation_texts: " + str(segmentation_texts)+ str(type(segmentation_texts)))
         model_predictions, boxes, segmentation_texts = models.get_langsam_output(rgb_image_head, self.langsam_model, segmentation_texts, self.segmentation_count)
         self.logger.info(OK + "Finished segmenting head camera image!" + ENDC)
 
         masks = utils.get_segmentation_mask(model_predictions, config.segmentation_threshold)
-        self.logger.info("mask reasult is "+ str(masks))
+        # self.logger.info("mask reasult is "+ str(masks))
 
         # 예측결과를 이진화하여(True, False) 마스크 내부 예측 결과를 확정한다.
 
-        bounding_cubes_world_coordinates, bounding_cubes_orientations = utils.get_bounding_cube_from_point_cloud(rgb_image_head, masks, depth_array, self.head_camera_position, self.head_camera_orientation_q, self.segmentation_count)
+        bounding_cubes_world_coordinates, bounding_cubes_orientations,contour_pixel_points = utils.get_bounding_cube_from_point_cloud(rgb_image_head, masks, depth_array, self.head_camera_position, self.head_camera_orientation_q, depth_image, depth_intrinsics, self.segmentation_count)
         # 여기서 주는 depth array가 거리 관련 데이터인듯
-        self.logger.info("bounding_cubes_world_coordinates: "+str(bounding_cubes_world_coordinates))
+        # self.logger.info("bounding_cubes_world_coordinates: "+str(bounding_cubes_world_coordinates))
 
         utils.save_xmem_image(masks)
 

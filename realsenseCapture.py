@@ -14,12 +14,12 @@ class IntelCamera:
     def save_RGB_img(image):
         # RGB 이미지를 JPEG 파일로 저장
         cv2.imwrite("captured_image.png", image)
-        print("RGB image saved as 'captured_image.png'")
+        # print("RGB image saved as 'captured_image.png'")
 
     def save_Depth_img(depth_image):
         
         cv2.imwrite("captured_depth_image.png", depth_image)
-        print("Depth image saved as 'captured_depth_image.png'")
+        # print("Depth image saved as 'captured_depth_image.png'")
     
     def capture_save_image():
 
@@ -36,14 +36,17 @@ class IntelCamera:
         profile = pipeline.start(config)
         depth_sensor = profile.get_device().first_depth_sensor()
         depth_scale = depth_sensor.get_depth_scale()
-        print(f"Depth Scale: {depth_scale} meters per unit")
+        depth_stream = profile.get_stream(rs.stream.depth)
+        depth_intrinsics = depth_stream.as_video_stream_profile().get_intrinsics()
+
+        # print(f"Depth Scale: {depth_scale} meters per unit")
         align = rs.align(rs.stream.color)
 
         try:
             # pipeline.start(config)
 
             # 프레임 읽기
-            for _ in range(20):
+            for _ in range(35):
                 frames = pipeline.wait_for_frames()
                 frames = align.process(frames)
                 color_frame = frames.get_color_frame()
@@ -59,10 +62,10 @@ class IntelCamera:
             # cv2.imshow('Captured Image', color_image)
             threading.Thread(target=IntelCamera.save_RGB_img, args=(color_image,)).start()
             threading.Thread(target=IntelCamera.save_Depth_img, args=(depth_image,)).start()
-            return rgba_image, depth_image
+            return rgba_image, depth_image, depth_intrinsics
     # 리턴값 없이 촬영한 사진을 저장한 후 불러와 사용한다.
         finally:
             pipeline.stop()
             
             
-a = IntelCamera.capture_save_image()
+# a = IntelCamera.capture_save_image()

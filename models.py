@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 import os
 import json
 import multiprocessing
-
+import main
 
 sys.path.append("./XMem/")
 load_dotenv("openaiAPI.env")
@@ -38,8 +38,8 @@ from XMem.inference.inference_core import InferenceCore
 from XMem.inference.interact.interactive_utils import image_to_torch, index_numpy_to_one_hot_torch, torch_prob_to_numpy_mask, overlay_davis
 
 def get_langsam_output(image, model, segmentation_texts, segmentation_count):
-    print("segmentation_texts:", segmentation_texts)
-    print(type(segmentation_texts))
+    # print("segmentation_texts:", segmentation_texts)
+    # print(type(segmentation_texts))
 
     segmentation_texts = " . ".join(segmentation_texts)
 
@@ -52,14 +52,14 @@ def get_langsam_output(image, model, segmentation_texts, segmentation_count):
 
 
     result_dict = data 
-    print("result_dict=",result_dict)
+    # print("result_dict=",result_dict)
 
     logits = [item['scores'] for item in result_dict]
     phrases = [item['labels'] for item in result_dict]
     boxes = [item['boxes'] for item in result_dict]
     masks = [item['masks'] for item in result_dict]
 
-    logger.info("boxes length = "+ str(len(boxes)))
+    # logger.info("boxes length = "+ str(len(boxes)))
 
     output_file = "output_data.txt"
     with open(output_file, "w") as f:
@@ -80,8 +80,8 @@ def get_langsam_output(image, model, segmentation_texts, segmentation_count):
     for i in range(count):
         colors1.append("red")
         colors2.append("cyan")
-    logger.info("boxes length = "+str(count))
-    logger.info("boxes colors = "+str(colors1)+str(colors2))
+    # logger.info(" = "+str(count))
+    # logger.info("boxes colors = "+str(colors1)+str(colors2))
 
 
 
@@ -145,6 +145,7 @@ def get_chatgpt_output(model, new_prompt, messages, role, file=sys.stdout):
             print("finish_reason:", finish_reason, file=file)
 
     messages.append({"role":"assistant", "content":new_output})
+    main.save_code_block_to_file(messages, file_name="message_blocks.txt")
 
     return messages
 

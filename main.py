@@ -103,7 +103,6 @@ if __name__ == "__main__":
     logger.info(PROGRESS + "STARTING TASK..." + ENDC)
 
     messages = [] # get_chatgpt_output()에 있어도 상관없을
-
     error = False
 
     new_prompt = MAIN_PROMPT.replace("[INSERT EE POSITION]", str(config.ee_start_position)).replace("[INSERT TASK]", command)
@@ -130,12 +129,13 @@ if __name__ == "__main__":
                 #   {"role": "assistant", "content": "```python\nprint('Hello, World!')\n```"} 꼴의 데이터에서 'Hello, World!'를 가져온다,
                 #   코드가 리턴되므로 코드 블럭이라는 변수에 저장해준다.
                 block_number = 0
-                save_code_block_to_file(code_block)
+                # save_code_block_to_file(code_block)
                 for block in code_block:
                     if len(block.split("```")) > 1:
                         # 생성된 코드문을 받은 후, ''' -------''' 기준으로 쪼개 실행한다.
                         code = block.split("```")[0]
                         save_code_block_to_file(code)
+                        save_code_block_to_file("//////")
                         block_number += 1
                         try:
                             f = StringIO()
@@ -153,6 +153,7 @@ if __name__ == "__main__":
                             s = f.getvalue()
                             error = False
                             if s != "" and len(s) < 2000:
+                                # logger.info("11")
                                 new_prompt += PRINT_OUTPUT_PROMPT.replace("[INSERT PRINT STATEMENT OUTPUT]", s)
                                 new_prompt += "\n"
                                 error = True
@@ -193,7 +194,12 @@ if __name__ == "__main__":
 
                 else:
 
-                    logger.info(PROGRESS + "Generating ChatGPT output..." + ENDC)
+                    # logger.info("new prompt: "+str(new_prompt))
+                    # logger.info("------------------------------")
+                    # logger.info("messages: "+str(messages))
+                    # logger.info("------------------------------")
+
+                    
                     messages = models.get_chatgpt_output(args.language_model, new_prompt, messages, "user")
                     logger.info(OK + "Finished generating ChatGPT output!" + ENDC)
 
