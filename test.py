@@ -22,7 +22,7 @@ langsam_model = LangSAM()
 
 rgb_image_head = Image.open(config.rgb_image_head_path).convert("RGB")
 
-model_predictions, boxes, segmentation_texts = models.get_langsam_output(rgb_image_head,langsam_model, segmentation_texts=["cans."], segmentation_count=0)
+model_predictions, boxes, segmentation_texts = models.get_langsam_output(rgb_image_head,langsam_model, segmentation_texts=["banana."], segmentation_count=0)
 
 
 masks = get_segmentation_mask(model_predictions, config.segmentation_threshold)
@@ -71,25 +71,25 @@ finally:
 
 
 
-def visualize_depth_array(depth_array):
-    rows, cols = depth_array.shape
-    x = np.linspace(0, cols - 1, cols)
-    y = np.linspace(0, rows - 1, rows) 
-    x, y = np.meshgrid(x, y)
-    fig = plt.figure(figsize=(10, 7))
-    ax = fig.add_subplot(111, projection='3d')
-    surface = ax.plot_surface(x, y, -depth_array, cmap='viridis', edgecolor='none')
+# def visualize_depth_array(depth_array):
+#     rows, cols = depth_array.shape
+#     x = np.linspace(0, cols - 1, cols)
+#     y = np.linspace(0, rows - 1, rows) 
+#     x, y = np.meshgrid(x, y)
+#     fig = plt.figure(figsize=(10, 7))
+#     ax = fig.add_subplot(111, projection='3d')
+#     surface = ax.plot_surface(x, y, -depth_array, cmap='viridis', edgecolor='none')
 
-    # 색상 바 추가
-    fig.colorbar(surface, ax=ax, shrink=0.5, aspect=10)
+#     # 색상 바 추가
+#     fig.colorbar(surface, ax=ax, shrink=0.5, aspect=10)
 
-    # 제목과 라벨
-    ax.set_title('3D Surface Plot')
-    ax.set_xlabel('X axis')
-    ax.set_ylabel('Y axis')
-    ax.set_zlabel('Z axis')
+#     # 제목과 라벨
+#     ax.set_title('3D Surface Plot')
+#     ax.set_xlabel('X axis')
+#     ax.set_ylabel('Y axis')
+#     ax.set_zlabel('Z axis')
 
-    plt.show()
+#     plt.show()
 
 
 
@@ -161,7 +161,7 @@ check_real_size()
 import config
 
 
-visualize_depth_array(depth_array)
+# visualize_depth_array(depth_array)
 
 
 # print("contour_pixel_points: ",contour_pixel_points)

@@ -46,7 +46,7 @@ class IntelCamera:
             # pipeline.start(config)
 
             # 프레임 읽기
-            for _ in range(35):
+            for _ in range(37):
                 frames = pipeline.wait_for_frames()
                 frames = align.process(frames)
                 color_frame = frames.get_color_frame()

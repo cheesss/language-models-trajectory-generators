@@ -67,8 +67,6 @@ class API:
         depth_array = np.array(depth_image_head) * depth_scale
         # depth_array = depth_image_head
         # self.logger.info("depth_array min is "+str(np.average(depth_array)))
-        # ndc데이터는 비선형이므로, 이를 실제 시각 거리로 바꿔준 후, 256개로 나눠 깊이를 직관적으로 볼 수 있게 바꾼다.
-
 
 
         if self.segmentation_count == 0:
@@ -76,10 +74,13 @@ class API:
             xmem_image.save(config.xmem_input_path)
 
         segmentation_texts = [segmentation_text]
-
+        # point = ["."]
+        # segmentation_text = segmentation_texts + point
         self.logger.info(PROGRESS + "Segmenting head camera image..." + ENDC)
         # print("this is test", rgb_image_head, self.langsam_model, segmentation_texts, self.segmentation_count)
         # self.logger.info("segmantation_texts: " + str(segmentation_texts)+ str(type(segmentation_texts)))
+        self.logger.info("segmentation_texts: "+ str(segmentation_text))
+        print("segmentation_texts: ", segmentation_texts)
         model_predictions, boxes, segmentation_texts = models.get_langsam_output(rgb_image_head, self.langsam_model, segmentation_texts, self.segmentation_count)
         self.logger.info(OK + "Finished segmenting head camera image!" + ENDC)
 

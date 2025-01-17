@@ -1,133 +1,52 @@
+
+# Detect the red box, yellow bottle, and white cup
+detect_object("red box")
+detect_object("yellow bottle")
+detect_object("white cup")
+
+
 //////
 
 
-detect_object("box")
+import numpy as np
 
+def create_trajectory(start, end, steps=100):
+    """Create a linear trajectory from start to end with a given number of steps."""
+    return [np.linspace(start[i], end[i], steps).tolist() for i in range(4)]
 
-//////
+# Step 1: Approach the Red Box
+approach_position = [0.2, -0.5, 0.2]  # Above the red box
+approach_orientation = 0  # Align with the narrow side
+trajectory_1 = create_trajectory([0.0, -0.59, 0.455, 0], approach_position + [approach_orientation])
 
+# Step 2: Pick Up the Red Box
+pick_position = [0.2, -0.5, 0.1]  # At the red box
+trajectory_2 = create_trajectory(approach_position + [approach_orientation], pick_position + [approach_orientation])
 
-def trajectory_1_approach_box(start_pos, target_pos, height, rotation):
-    trajectory = []
-    # Move to the target position above the box
-    for i in range(100):
-        t = i / 99  # Normalized time from 0 to 1
-        x = start_pos[0] + t * (target_pos[0] - start_pos[0])
-        y = start_pos[1] + t * (target_pos[1] - start_pos[1])
-        z = height  # Keep height constant
-        trajectory.append([x, y, z, rotation])
-    return trajectory
-
-# Current position of the end-effector
-start_position = [0.0, 0.6, 0.55]
-# Assuming the box is located at (0.0, 0.6, 0.0) for this example
-target_position = [0.0, 0.6, 0.0]
-# Height to approach the box
-approach_height = 0.65
-# Rotation value (no rotation needed for this approach)
-rotation_value = 0
-
-# Generate the trajectory to approach the box
-trajectory_1 = trajectory_1_approach_box(start_position, target_position, approach_height, rotation_value)
-
-# Execute the trajectory
+# Execute Step 1 and Step 2
 execute_trajectory(trajectory_1)
-
-
-//////
-
-
-def trajectory_2_lower_gripper(start_pos, target_height, rotation):
-    trajectory = []
-    # Move down to the target height
-    for i in range(100):
-        t = i / 99  # Normalized time from 0 to 1
-        x = start_pos[0]  # Keep x position constant
-        y = start_pos[1]  # Keep y position constant
-        z = start_pos[2] - t * (start_pos[2] - target_height)  # Move down to target height
-        trajectory.append([x, y, z, rotation])
-    return trajectory
-
-# Current position after approaching the box
-current_position = [0.0, 0.6, 0.65]
-# Assuming the box height is 0.08 meters, we will lower to 0.08 meters
-target_height = 0.08
-
-# Generate the trajectory to lower the gripper
-trajectory_2 = trajectory_2_lower_gripper(current_position, target_height, rotation_value)
-
-# Execute the trajectory
+close_gripper()
 execute_trajectory(trajectory_2)
 
+# Step 3: Move to Target Position
+lift_position = [0.2, -0.5, 0.3]  # Lift the box
+target_position = [0.5, -0.5, 0.3]  # Between the yellow bottle and white cup
+trajectory_3 = create_trajectory(pick_position + [approach_orientation], lift_position + [approach_orientation])
+trajectory_4 = create_trajectory(lift_position + [approach_orientation], target_position + [approach_orientation])
 
-//////
-
-
-# Close the gripper to pick up the box
-close_gripper()
-
-
-//////
-
-
-def trajectory_4_lift_box(start_pos, target_height, rotation):
-    trajectory = []
-    # Move up to the target height
-    for i in range(100):
-        t = i / 99  # Normalized time from 0 to 1
-        x = start_pos[0]  # Keep x position constant
-        y = start_pos[1]  # Keep y position constant
-        z = start_pos[2] + t * (target_height - start_pos[2])  # Move up to target height
-        trajectory.append([x, y, z, rotation])
-    return trajectory
-
-# Current position after closing the gripper
-current_position_after_grasp = [0.0, 0.6, 0.08]
-
-# Generate the trajectory to lift the box
-trajectory_4 = trajectory_4_lift_box(current_position_after_grasp, approach_height, rotation_value)
-
-# Execute the trajectory
+# Execute Step 3
+execute_trajectory(trajectory_3)
 execute_trajectory(trajectory_4)
 
+# Step 4: Place the Red Box
+place_position = [0.5, -0.5, 0.1]  # On the tabletop
+trajectory_5 = create_trajectory(target_position + [approach_orientation], place_position + [approach_orientation])
 
-//////
-
-
-def trajectory_5_move_to_location(start_pos, target_pos, height, rotation):
-    trajectory = []
-    # Move to the target position at the designated height
-    for i in range(100):
-        t = i / 99  # Normalized time from 0 to 1
-        x = start_pos[0] + t * (target_pos[0] - start_pos[0])
-        y = start_pos[1] + t * (target_pos[1] - start_pos[1])
-        z = height  # Keep height constant
-        trajectory.append([x, y, z, rotation])
-    return trajectory
-
-# Current position after lifting the box
-current_position_after_lift = [0.0, 0.6, 0.65]
-# Designated location to place the box
-target_location = [0.5, 0.6, 0.65]
-
-# Generate the trajectory to move to the designated location
-trajectory_5 = trajectory_5_move_to_location(current_position_after_lift, target_location, approach_height, rotation_value)
-
-# Execute the trajectory
+# Execute Step 4
 execute_trajectory(trajectory_5)
-
-
-//////
-
-
-# Open the gripper to release the box
 open_gripper()
 
-
-//////
-
-
-# Indicate that the task has been completed
+# Task Completed
 task_completed()
 
 

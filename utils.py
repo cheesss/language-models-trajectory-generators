@@ -12,8 +12,12 @@ import multiprocessing
 import logging
 import pyrealsense2 as rs
 import open3d as o3d
-
+import copy
 depth_scale = 0.0010000000474974513
+base2cam = np.array([[ 9.97956043e-01,  1.24564979e-03,  6.38919201e-02,  5.63566259e-02],
+            [-3.78161693e-02, -7.94446176e-01,  6.06156097e-01, -1.47778554e+00],
+            [ 5.15137493e-02, -6.07333292e-01, -7.92775253e-01,  4.75763504e-01],
+            [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  1.00000000e+00],])
 
 
 logger = multiprocessing.log_to_stderr()
@@ -112,6 +116,7 @@ def save_xmem_image(masks):
 def get_bounding_cube_from_point_cloud( image, masks, depth_array, camera_position, camera_orientation_q, depth_image, depth_intrinsics, segmentation_count):
     # depth 이미지 사용!
     image_width, image_height = image.size
+    print("image_width, image_height:  ",image_width, image_height)
     # plt.imshow(image)
     # plt.show(image)
 
@@ -130,7 +135,12 @@ def get_bounding_cube_from_point_cloud( image, masks, depth_array, camera_positi
         # 컨투어 값은 잘 가져오고있다.
         if contour is not None:
 
-            contour_pixel_points = [(c, r, depth_array[c][r]) for r in range(image_height) for c in range(image_width) if cv.pointPolygonTest(contour, (r, c), measureDist=False) == 1]
+            print("depth_array.size: ", depth_array.shape)
+            print("depth_image.shape: ", depth_image.shape)
+
+            # print("diff:", np.average(depth_array- depth_image*depth_scale))
+            contour_pixel_points = [(c, r, depth_array[r][c]) for r in range(image_height) for c in range(image_width) if cv.pointPolygonTest(contour, (r, c), measureDist=False) == 1]
+            
             # print('Contour_pixel_points: ', contour_pixel_points)
             # contour_pixel_points 또한 정상 출력되고있다.
 
@@ -144,14 +154,15 @@ def get_bounding_cube_from_point_cloud( image, masks, depth_array, camera_positi
             for pixel_point in contour_pixel_points:
                 c, r, depth = pixel_point
                 if depth > 0:
-                    print("c, r: ", c, r)
-                    world_point = rs.rs2_deproject_pixel_to_point(depth_intrinsics, [c, r], (depth_image[c][r])*depth_scale)
+                    depth_value = depth_image * depth_scale
+                    world_point = rs.rs2_deproject_pixel_to_point(depth_intrinsics, [r, c], (depth_value[c][r]))
                     
                     contour_world_points.append(world_point)
-
+            print("depthV ",depth_value[10][5])
+            print("depthA",depth_array[5][10])
             if len(contour_world_points) == 0:
                 continue
-            
+            print("depth_intrinsic: ",depth_intrinsics)
             contour_world_points = np.array(contour_world_points)
             # print("Contour world points: ", contour_world_points)
             # --------------------------------
@@ -222,11 +233,27 @@ def get_world_point_world_frame(pipeline, camera_position, camera_orientation_q,
 
 def outier_removed_point_cloud(points):
     point_cloud = o3d.geometry.PointCloud()
+    point_cloud_vis = o3d.geometry.PointCloud()
     point_cloud.points = o3d.utility.Vector3dVector(points)
     voxel_down_pcd = point_cloud.voxel_down_sample(voxel_size=0.005)
     cl, ind = voxel_down_pcd.remove_statistical_outlier(nb_neighbors=20, std_ratio=2.0)
     inlier_cloud = voxel_down_pcd.select_by_index(ind)
+    # point_np = np.asarray(inlier_cloud.points)
+    # ones = np.ones(len(point_np))
+    # base2cam_p1 = np.c_[point_np, ones]
+    # point_T = np.dot(base2cam,base2cam_p1.T)
+
+    inlier_cloud = inlier_cloud.transform(base2cam)
+
+    frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.5)
+    c_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.2)
+    c_frame.transform(base2cam)
     # 포인트 클라우드 시각화
-    o3d.visualization.draw_geometries([inlier_cloud])
+    # point_cloud.points = o3d.utility.Vector3dVector(point_T.T[:, :-1])
+
+    o3d.visualization.draw_geometries([inlier_cloud,frame, c_frame])
+    # o3d.visualization.draw_geometries([voxel_down_pcd, frame])
+    
+
 
     return inlier_cloud

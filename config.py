@@ -30,7 +30,7 @@ base_start_position_franka = [0.0, 0.0, 0.0]
 base_start_orientation_e_franka = [0.0, 0.0, math.pi / 2]
 joint_start_positions_franka = [0.0, 0.0, 0.0, -1.5708, 0.0, 1.8675, 0.0, 0.04, 0.04]
 
-ee_start_position = [0.0, 0.6, 0.55]
+ee_start_position = [0.0, -0.59, 0.455]
 ee_start_orientation_e = [0.0, math.pi, -math.pi / 2]
 
 object_start_position = [random.uniform(-0.2, 0.2), random.uniform(0.4, 0.8), 0.1]
@@ -47,7 +47,7 @@ image_height = 480
 
 head_camera_position = [0.0, 1.2, 0.6]
 
-head_camera_orientation_e = [0.0, 5 * math.pi / 6, -math.pi / 2]
+head_camera_orientation_e = [0.0, 0.0, 0.0]
 # head_camera_orientation_e = [0,0,0]
 
 camera_distance = 0.8
