@@ -22,7 +22,7 @@ langsam_model = LangSAM()
 
 rgb_image_head = Image.open(config.rgb_image_head_path).convert("RGB")
 
-model_predictions, boxes, segmentation_texts = models.get_langsam_output(rgb_image_head,langsam_model, segmentation_texts=["banana."], segmentation_count=0)
+model_predictions, boxes, segmentation_texts = models.get_langsam_output(rgb_image_head,langsam_model, segmentation_texts=["red box"], segmentation_count=0)
 
 
 masks = get_segmentation_mask(model_predictions, config.segmentation_threshold)

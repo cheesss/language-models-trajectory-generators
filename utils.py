@@ -158,8 +158,8 @@ def get_bounding_cube_from_point_cloud( image, masks, depth_array, camera_positi
                     world_point = rs.rs2_deproject_pixel_to_point(depth_intrinsics, [r, c], (depth_value[c][r]))
                     
                     contour_world_points.append(world_point)
-            print("depthV ",depth_value[10][5])
-            print("depthA",depth_array[5][10])
+            # print("depthV ",depth_value[10][5])
+            # print("depthA",depth_array[5][10])
             if len(contour_world_points) == 0:
                 continue
             print("depth_intrinsic: ",depth_intrinsics)
@@ -178,8 +178,8 @@ def get_bounding_cube_from_point_cloud( image, masks, depth_array, camera_positi
             # print("Max_z_coordinate", max_z_coordinate)
             min_z_coordinate = np.min((contour_world_points)[:, 2])
             # print("min_z_cord: ",min_z_coordinate)
-            depth_offset = 0.03
-            # depth_offset = 0.08
+            # depth_offset = 0.03
+            depth_offset = 0.07
             top_surface_world_points = [world_point for world_point in contour_world_points if world_point[2] > max_z_coordinate - depth_offset]
             # logging.info("Top surface world points"+str(top_surface_world_points))
             rect = MultiPoint([world_point[:2] for world_point in top_surface_world_points]).minimum_rotated_rectangle
@@ -203,7 +203,7 @@ def get_bounding_cube_from_point_cloud( image, masks, depth_array, camera_positi
                 bounding_cubes_orientations.append([bounding_cubes_orientation_width, bounding_cubes_orientation_length])
 
     bounding_cubes = np.array(bounding_cubes)
-
+    print(bounding_cubes)
     return bounding_cubes, bounding_cubes_orientations, contour_pixel_points
 
 
@@ -236,7 +236,7 @@ def outier_removed_point_cloud(points):
     point_cloud_vis = o3d.geometry.PointCloud()
     point_cloud.points = o3d.utility.Vector3dVector(points)
     voxel_down_pcd = point_cloud.voxel_down_sample(voxel_size=0.005)
-    cl, ind = voxel_down_pcd.remove_statistical_outlier(nb_neighbors=20, std_ratio=2.0)
+    cl, ind = voxel_down_pcd.remove_statistical_outlier(nb_neighbors=10, std_ratio=2.0)
     inlier_cloud = voxel_down_pcd.select_by_index(ind)
     # point_np = np.asarray(inlier_cloud.points)
     # ones = np.ones(len(point_np))
@@ -254,6 +254,5 @@ def outier_removed_point_cloud(points):
     o3d.visualization.draw_geometries([inlier_cloud,frame, c_frame])
     # o3d.visualization.draw_geometries([voxel_down_pcd, frame])
     
-
-
     return inlier_cloud
+

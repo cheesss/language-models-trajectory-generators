@@ -1,52 +1,127 @@
 
-# Detect the red box, yellow bottle, and white cup
-detect_object("red box")
-detect_object("yellow bottle")
-detect_object("white cup")
+detect_object("food")
 
 
 //////
 
 
-import numpy as np
+def trajectory_approach_food(start_pos, target_pos, orientation):
+    trajectory = []
+    # Move in x and y direction to the target position while keeping z constant
+    for i in range(100):
+        t = i / 99  # Normalized time from 0 to 1
+        x = start_pos[0] + t * (target_pos[0] - start_pos[0])
+        y = start_pos[1] + t * (target_pos[1] - start_pos[1])
+        z = start_pos[2]  # Keep z constant
+        trajectory.append([x, y, z, orientation])
+    return trajectory
 
-def create_trajectory(start, end, steps=100):
-    """Create a linear trajectory from start to end with a given number of steps."""
-    return [np.linspace(start[i], end[i], steps).tolist() for i in range(4)]
+# Define start and target positions
+start_position = [0.0, -0.59, 0.455]
+target_position = [-0.104, -0.944, 0.455]
+orientation = 0  # No rotation for this step
 
-# Step 1: Approach the Red Box
-approach_position = [0.2, -0.5, 0.2]  # Above the red box
-approach_orientation = 0  # Align with the narrow side
-trajectory_1 = create_trajectory([0.0, -0.59, 0.455, 0], approach_position + [approach_orientation])
+# Generate the trajectory
+trajectory_1 = trajectory_approach_food(start_position, target_position, orientation)
 
-# Step 2: Pick Up the Red Box
-pick_position = [0.2, -0.5, 0.1]  # At the red box
-trajectory_2 = create_trajectory(approach_position + [approach_orientation], pick_position + [approach_orientation])
 
-# Execute Step 1 and Step 2
+//////
+
+
 execute_trajectory(trajectory_1)
-close_gripper()
+
+
+//////
+
+
+def trajectory_rotate_end_effector(current_pos, target_rotation):
+    trajectory = []
+    # Rotate around the z-axis while keeping x and y constant
+    for i in range(100):
+        t = i / 99  # Normalized time from 0 to 1
+        rotation = current_pos[3] + t * (target_rotation - current_pos[3])
+        trajectory.append([current_pos[0], current_pos[1], current_pos[2], rotation])
+    return trajectory
+
+# Define current position and target rotation
+current_position = [-0.104, -0.944, 0.455, 0]  # Adding current rotation
+target_rotation = 0.429  # Target rotation to align with the width
+
+# Generate the trajectory
+trajectory_2 = trajectory_rotate_end_effector(current_position, target_rotation)
+
+
+//////
+
+
 execute_trajectory(trajectory_2)
 
-# Step 3: Move to Target Position
-lift_position = [0.2, -0.5, 0.3]  # Lift the box
-target_position = [0.5, -0.5, 0.3]  # Between the yellow bottle and white cup
-trajectory_3 = create_trajectory(pick_position + [approach_orientation], lift_position + [approach_orientation])
-trajectory_4 = create_trajectory(lift_position + [approach_orientation], target_position + [approach_orientation])
 
-# Execute Step 3
+//////
+
+
+def trajectory_lower_gripper(current_pos, target_pos, orientation):
+    trajectory = []
+    # Move down in the z direction to the target position while keeping x and y constant
+    for i in range(100):
+        t = i / 99  # Normalized time from 0 to 1
+        x = current_pos[0]  # Keep x constant
+        y = current_pos[1]  # Keep y constant
+        z = current_pos[2] - t * (current_pos[2] - target_pos[2])  # Move down
+        trajectory.append([x, y, z, orientation])
+    return trajectory
+
+# Define current position and target position
+current_position = [-0.104, -0.944, 0.455, 0.429]  # Adding current rotation
+target_position = [-0.104, -0.944, 0.196]  # Height of the food item
+
+# Generate the trajectory
+trajectory_3 = trajectory_lower_gripper(current_position, target_position, 0.429)
+
+
+//////
+
+
 execute_trajectory(trajectory_3)
-execute_trajectory(trajectory_4)
 
-# Step 4: Place the Red Box
-place_position = [0.5, -0.5, 0.1]  # On the tabletop
-trajectory_5 = create_trajectory(target_position + [approach_orientation], place_position + [approach_orientation])
 
-# Execute Step 4
+//////
+
+
+close_gripper()
+
+
+//////
+
+
+def trajectory_lift_food(current_pos, target_pos, orientation):
+    trajectory = []
+    # Move up in the z direction to the target position while keeping x and y constant
+    for i in range(100):
+        t = i / 99  # Normalized time from 0 to 1
+        x = current_pos[0]  # Keep x constant
+        y = current_pos[1]  # Keep y constant
+        z = current_pos[2] + t * (target_pos[2] - current_pos[2])  # Move up
+        trajectory.append([x, y, z, orientation])
+    return trajectory
+
+# Define current position and target position
+current_position = [-0.104, -0.944, 0.196, 0.429]  # Adding current rotation
+target_position = [-0.104, -0.944, 0.455]  # Lift back to original height
+
+# Generate the trajectory
+trajectory_5 = trajectory_lift_food(current_position, target_position, 0.429)
+
+
+//////
+
+
 execute_trajectory(trajectory_5)
-open_gripper()
 
-# Task Completed
+
+//////
+
+
 task_completed()
 
 
