@@ -53,16 +53,16 @@ class API:
         self.wrist_camera_orientation_q = wrist_camera_orientation_q
 
         # 원본 코드
-        # rgb_image_head = Image.open(config.rgb_image_head_path).convert("RGB")
-        # depth_image_head = Image.open(config.depth_image_head_path).convert("L")
+        rgb_image_head = Image.open(config.rgb_image_head_path).convert("RGB")
+        depth_image_head = Image.open(config.depth_image_head_path).convert("L")
 
         # realsense 적용코드
-        IntelCamera.capture_save_image()
-        rgb_image_head_path = config.Intel_rgb_image_head_path
-        rgb_image_head = Image.open(rgb_image_head_path).convert("RGB")
+        # IntelCamera.capture_save_image()
+        # rgb_image_head_path = config.Intel_rgb_image_head_path
+        # rgb_image_head = Image.open(rgb_image_head_path).convert("RGB")
 
-        depth_image_head_path = config.Intel_depth_image_head_path
-        depth_image_head = Image.open(depth_image_head_path).convert("L")
+        # depth_image_head_path = config.Intel_depth_image_head_path
+        # depth_image_head = Image.open(depth_image_head_path).convert("L")
         depth_array = np.array(depth_image_head) / 255
         # depth_array = depth_image_head
         self.logger.info("depth_array min is "+str(np.average(depth_array)))

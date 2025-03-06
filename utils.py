@@ -8,6 +8,12 @@ import config
 from PIL import Image
 from torchvision.utils import save_image
 from shapely.geometry import MultiPoint, Polygon, polygon
+import multiprocessing
+import logging
+
+
+logger = multiprocessing.log_to_stderr()
+logger.setLevel(logging.INFO)
 
 def get_segmentation_mask(model_predictions, segmentation_threshold):
 
@@ -131,7 +137,7 @@ def get_world_point_world_frame(camera_position, camera_orientation_q, camera, i
     image_width, image_height = image.size
 
     K, Rt = get_intrinsics_extrinsics(image_height, camera_position, camera_orientation_q)
-
+    logging.info("Rt:" +str(Rt))
     pixel_point = np.array([[point[0] - (image_width / 2)], [(image_height / 2) - point[1]], [1.0]])
 
     if camera == "wrist":

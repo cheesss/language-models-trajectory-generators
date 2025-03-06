@@ -10,6 +10,8 @@ import random
 import math
 
 
+origin=[0, 0, 0]
+size = 100
 
 class Environment:
 
@@ -22,28 +24,28 @@ class Environment:
         p.resetDebugVisualizerCamera(config.camera_distance, config.camera_yaw, config.camera_pitch, config.camera_target_position)
 
         object_start_position = config.object_start_position
-        # object_start_orientation_q = p.getQuaternionFromEuler(config.object_start_orientation_e)
-        # object_model = p.loadURDF("ycb_assets/005_tomato_soup_can.urdf",object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
+        object_start_orientation_q = p.getQuaternionFromEuler(config.object_start_orientation_e)
+        object_model = p.loadURDF("ycb_assets/005_tomato_soup_can.urdf",object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
 
         
-        object_start_position = [random.uniform(-0.2, 0.2), random.uniform(0.4, 0.8), 0.1]
-        object_start_orientation_e = [0.0, 0.0, random.uniform(-math.pi, math.pi)]
-        object_start_orientation_q = p.getQuaternionFromEuler(object_start_orientation_e)
-        object_model = p.loadURDF("ycb_assets/003_cracker_box.urdf",object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
+        # object_start_position = [random.uniform(-0.2, 0.2), random.uniform(0.4, 0.8), 0.1]
+        # object_start_orientation_e = [0.0, 0.0, random.uniform(-math.pi, math.pi)]
+        # object_start_orientation_q = p.getQuaternionFromEuler(object_start_orientation_e)
+        # object_model = p.loadURDF("ycb_assets/003_cracker_box.urdf",object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
 
-        object_start_position = [random.uniform(-0.2, 0.2), random.uniform(0.4, 0.8), 0.1]
-        object_start_orientation_e = [0.0, 0.0, random.uniform(-math.pi, math.pi)]
-        object_start_orientation_q = p.getQuaternionFromEuler(object_start_orientation_e)
-        object_model = p.loadURDF("ycb_assets/003_cracker_box.urdf",object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
+        # object_start_position = [random.uniform(-0.2, 0.2), random.uniform(0.4, 0.8), 0.1]
+        # object_start_orientation_e = [0.0, 0.0, random.uniform(-math.pi, math.pi)]
+        # object_start_orientation_q = p.getQuaternionFromEuler(object_start_orientation_e)
+        # object_model = p.loadURDF("ycb_assets/003_cracker_box.urdf",object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
 
-        object_start_position = [random.uniform(-0.2, 0.2), random.uniform(0.4, 0.8), 0.1]
-        object_start_orientation_e = [0.0, 0.0, random.uniform(-math.pi, math.pi)]
-        object_start_orientation_q = p.getQuaternionFromEuler(object_start_orientation_e)
-        object_model = p.loadURDF("ycb_assets/003_cracker_box.urdf",object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
+        # object_start_position = [random.uniform(-0.2, 0.2), random.uniform(0.4, 0.8), 0.1]
+        # object_start_orientation_e = [0.0, 0.0, random.uniform(-math.pi, math.pi)]ss
+        # object_start_orientation_q = p.getQuaternionFromEuler(object_start_orientation_e)
+        # object_model = p.loadURDF("ycb_assets/003_cracker_box.urdf",object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
 
         if self.mode == "default":
 
-            p.configureDebugVisualizer(p.COV_ENABLE_GUI, 0)
+            p.configureDebugVisualizer(p.COV_ENABLE_GUI, 0) 
             p.configureDebugVisualizer(p.COV_ENABLE_SHADOWS, 0)
 
 
@@ -64,10 +66,50 @@ def run_simulation_environment(args, env_connection, logger):
     p.setAdditionalSearchPath(pybullet_data.getDataPath())
     p.setGravity(0, 0, -9.81)
     plane = p.loadURDF("plane.urdf")
-
+    # X축 (빨강)
+    p.addUserDebugLine(
+        origin, [origin[0] + size, origin[1], origin[2]], [1, 0, 0], 3
+    )
+    # Y축 (초록)
+    p.addUserDebugLine(
+        origin, [origin[0], origin[1] + size, origin[2]], [0, 1, 0], 3
+    )
+    # Z축 (파랑)
+    p.addUserDebugLine(
+        origin, [origin[0], origin[1], origin[2] + size], [0, 0, 1], 3
+    )
     env = Environment(args)
     env.load()
     # 물체 소환
+
+    camera_distance = 0.8
+    camera_yaw = 225.0
+    camera_pitch = -30.0
+    camera_target = [0.0, 0.6, 0.3]
+
+    view_matrix = p.computeViewMatrixFromYawPitchRoll(
+        cameraTargetPosition=camera_target,
+        distance=camera_distance,
+        yaw=camera_yaw,
+        pitch=camera_pitch,
+        roll=0,
+        upAxisIndex=2
+    )
+
+
+    projection_matrix = p.computeProjectionMatrixFOV(
+        fov=60, aspect=1.0, nearVal=0.01, farVal=100
+    )
+
+
+    width, height, rgbImg, depthImg, segImg = p.getCameraImage(
+        width=640, height=480,
+        viewMatrix=view_matrix,
+        projectionMatrix=projection_matrix
+    )
+
+
+
 
     robot = Robot(args)
     robot.move(env, robot.ee_start_position, robot.ee_start_orientation_e, gripper_open=True, is_trajectory=False)
