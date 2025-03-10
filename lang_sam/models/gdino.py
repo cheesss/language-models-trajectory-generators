@@ -29,7 +29,7 @@ class GDINO:
         self,
         pil_images: list[Image.Image],
         text_prompt: list[str],
-        box_threshold: float,
+        threshold: float,
         text_threshold: float,
     ) -> list[dict]:
         
@@ -53,7 +53,7 @@ class GDINO:
         results = self.processor.post_process_grounded_object_detection(
             outputs,
             inputs.input_ids,
-            box_threshold=box_threshold,
+            threshold=threshold,
             text_threshold=text_threshold,
             target_sizes=[k.size[::-1] for k in pil_images],
         )
