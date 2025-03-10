@@ -8,39 +8,34 @@ api_key = os.getenv("api_key")
 
 client = openai.OpenAI(api_key=api_key)
 
-# 1. GPT-4V를 사용하여 이미지 분석
-image_file = client.files.create(
-    file=open("/home/ws/Desktop/LMTG/language-models-trajectory-generators/gpt_api_test/image.png", "rb"),
-    purpose="vision"
-)
+google_drive_image_url = "https://drive.google.com/uc?id=10tiP_DW0BhKpbdJWQi6xvARaDMpH0FPJ"
+# 드라이브 공개 URL로 사진 가져오기
 
-file_id = image_file.id
 
 response = client.chat.completions.create(
     model="gpt-4o-mini",
     messages=[
         {"role": "system", "content": "You are an AI that extracts useful information for manipulator robot from images."},
+        # 역할지정
         {"role": "user", "content": [
             {"type": "text", "text": "이 이미지에서 중요한 내용을 요약해줘. 특히 프링글스 통을 아래쪽으로 이동하기 위해 필요한 정보들을 알려줘."},
-            {"type": "image_url", "image_url": f"{file_id}"}
+            {"type": "image_url", "image_url": {"url": google_drive_image_url}}
         ]}
+        # 다운로드해온 이미지 분석
     ],
     max_tokens=500
 )
 
-# 2. 이미지 분석 결과 저장
-image_analysis_result = response.choices[0].message["content"]
+image_analysis_result = response.choices[0].message.content
 print("이미지 분석 결과:", image_analysis_result)
 
-# 3. Assistants API에 텍스트로 저장
 assistant = client.beta.assistants.create(
     name="Image Memory Assistant",
     instructions="You remember the analyzed content of uploaded images.",
-    model="gpt-4-turbo",
-    tools=[{"type": "retrieval"}]  # 검색 기능 활성화
+    model="gpt-4o-mini",
+    tools=[{"type": "file_search"}]  # 검색 기능 활성화
 )
 
-# 4. 새로운 대화 스레드 생성
 thread = client.beta.threads.create()
 
 # 5. 분석한 내용을 Assistants API에 입력
@@ -49,6 +44,9 @@ message = client.beta.threads.messages.create(
     role="user",
     content=f"이전에 분석한 이미지 내용: {image_analysis_result}"
 )
+
+
+print("-------------------------------------------------------------------------------------")
 
 # 6. 나중에 같은 스레드에서 질문하면 해당 내용이 유지됨
 message = client.beta.threads.messages.create(
@@ -65,7 +63,7 @@ run = client.beta.threads.runs.create(
 
 while run.status != "completed":
     time.sleep(1)
-    run = client.beta.threads.runs.retrieve(run.id)
+    run = client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
 
 messages = client.beta.threads.messages.list(thread_id=thread.id)
 print(messages.data[0].content)  # 이전 이미지 분석 내용 출력
