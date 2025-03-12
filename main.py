@@ -46,7 +46,7 @@ api_key = os.getenv("api_key")
 
 if __name__ == "__main__":
 
-    openai.api_key = os.getenv(api_key)
+    openai.api_key = api_key
 
     # Parse args
     parser = argparse.ArgumentParser(description="Main Program.")
@@ -169,10 +169,12 @@ if __name__ == "__main__":
                     logger.info(FAIL + "FAILED TASK! Generating summary of the task execution attempt..." + ENDC)
 
                     new_prompt += TASK_SUMMARY_PROMPT
+                    # 이전 프롬프트에 실패했다는 내용을 더하여 전달
                     new_prompt += "\n"
-
+                    # 작동 실패시 이전 내용을 요약하여 다시 리턴
                     logger.info(PROGRESS + "Generating ChatGPT output..." + ENDC)
                     messages = models.get_chatgpt_output(args.language_model, new_prompt, messages, "user")
+                    # 실패한 내용과, 이전 메세지를 같이 전달
                     logger.info(OK + "Finished generating ChatGPT output!" + ENDC)
 
                     logger.info(PROGRESS + "RETRYING TASK..." + ENDC)
@@ -200,9 +202,10 @@ if __name__ == "__main__":
         logger.info(OK + "FINISHED TASK!" + ENDC)
 
         new_prompt = input("Enter a command: ")
-
+        # 실행 마무리되면 원래 다음 명령 넣는듯
         logger.info(PROGRESS + "Generating ChatGPT output..." + ENDC)
         messages = models.get_chatgpt_output(args.language_model, new_prompt, messages, "user")
         logger.info(OK + "Finished generating ChatGPT output!" + ENDC)
 
         api.completed_task = False
+        # 완료 아님으로 다시 리턴
