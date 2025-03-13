@@ -55,6 +55,7 @@ class API:
         # 원본 코드
         rgb_image_head = Image.open(config.rgb_image_head_path).convert("RGB")
         depth_image_head = Image.open(config.depth_image_head_path).convert("L")
+        
 
         # realsense 적용코드
         # IntelCamera.capture_save_image()
@@ -71,13 +72,13 @@ class API:
 
 
         if self.segmentation_count == 0:
+            # 계속 검은색 이미지가 저장되는거보니, self.segmentation_count ==0 ->true인것 같은데, 이게 무슨 변수일까?
             xmem_image = Image.fromarray(np.zeros_like(depth_array)).convert("L")
             xmem_image.save(config.xmem_input_path)
-
+            # 흑백으로 변환하여 저장
         segmentation_texts = [segmentation_text]
 
         self.logger.info(PROGRESS + "Segmenting head camera image..." + ENDC)
-        # print("this is test", rgb_image_head, self.langsam_model, segmentation_texts, self.segmentation_count)
         model_predictions, boxes, segmentation_texts = models.get_langsam_output(rgb_image_head, self.langsam_model, segmentation_texts, self.segmentation_count)
         self.logger.info(OK + "Finished segmenting head camera image!" + ENDC)
 
@@ -124,7 +125,8 @@ class API:
                 print("Orientation along longer side (width):", np.around(bounding_cubes_orientations[i][0], 3), "\n")
 
         self.segmentation_count += 1
-
+        # 한개 찾고나면 segmentation_count 한개 올린다.
+        self.logger.info(f"segmentation count: {self.segmentation_count}")
 
 
     def execute_trajectory(self, trajectory):
@@ -136,7 +138,7 @@ class API:
         self.main_connection.send([EXECUTE_TRAJECTORY, trajectory])
 
         self.trajectory_length += len(trajectory)
-
+        # self.logger.info(f"Trajectory length: {trajectory}")
 
 
     def open_gripper(self):
@@ -167,10 +169,15 @@ class API:
             self.logger.info(env_connection_message)
 
             self.logger.info(PROGRESS + "Generating XMem output..." + ENDC)
+            # self.logger.info(f"Trajectory length: {self.trajectory_length}")
+            # tragectory_length란 몇개의 경로지점을 생성하여 수행했는지 보여준다.
             masks = models.get_xmem_output(self.xmem_model, self.device, self.trajectory_length)
+            # 여기서 xmem에게 이미지를 전달해준 후 성공여부를 확인한다. 
             self.logger.info(OK + "Finished generating XMem output!" + ENDC)
 
-            num_objects = len(np.unique(masks[0])) - 1
+            # num_objects = len(np.unique(masks[0])) - 1
+            num_objects = len(np.unique(masks[0]))
+            # 여기 또 있네
 
             new_prompt = SUCCESS_DETECTION_PROMPT.replace("[INSERT TASK]", self.command)
             new_prompt += "\n"
@@ -185,6 +192,7 @@ class API:
                 idx_offset = 0
 
                 for i, mask in enumerate(masks):
+                    # enumeratesms mask 내부의 인덱스와 데이터를 동시에 불러온다.
 
                     rgb_image = Image.open(config.rgb_image_trajectory_path.format(step=i * config.xmem_output_every)).convert("RGB")
                     depth_image = Image.open(config.depth_image_trajectory_path.format(step=i * config.xmem_output_every)).convert("L")
@@ -225,6 +233,7 @@ class API:
                             object_orientations.append(orientation)
 
                 # new_prompt += self.segmentation_texts[object - 1] + " trajectory positions and orientations:\n"
+                # 여기서 물건의 위치를 Xmem을 이용하여 추적 후 LangSAM으로 찾고, 바운딩 박스를 다시 그려 gpt에게 다시 전달해준다. 
                 new_prompt += "".join(self.segmentation_texts[object - 1]) + " trajectory positions and orientations:\n"
                 new_prompt += "Positions:\n"
                 new_prompt += str(np.around([position for p, position in enumerate(object_positions) if p % config.xmem_lm_input_every == 0], 3)) + "\n"

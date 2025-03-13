@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 import os
 import json
 import multiprocessing
-
+from PIL import Image
 
 sys.path.append("./XMem/")
 load_dotenv("openaiAPI.env")
@@ -50,7 +50,7 @@ def get_langsam_output(image, model, segmentation_texts, segmentation_count):
 
 
     result_dict = data 
-    print("result_dict=",result_dict)
+    # print("result_dict=",result_dict)
 
     logits = [item['scores'] for item in result_dict]
     phrases = [item['labels'] for item in result_dict]
@@ -151,20 +151,29 @@ def get_xmem_output(model, device, trajectory_length):
 
     mask = np.array(Image.open(config.xmem_input_path).convert("L"))
     mask = np.unique(mask, return_inverse=True)[1].reshape(mask.shape)
-    num_objects = len(np.unique(mask)) - 1
+    logger.info(f"mask : {mask}")
+    logger.info(f"-----------------------------------------------------------")
+    mask_image = Image.fromarray(mask.astype(np.uint8))  # 흑백 이미지로 변환
+    mask_image.save("mask.png")
+
+    # num_objects = len(np.unique(mask)) - 1
+    # 아마 물건이 한개로 설정되는데 위 코드에서 -1해서 물건 개수가 0으로 지정된듯
+    num_objects = len(np.unique(mask))
 
     torch.cuda.empty_cache()
-
+    # 메모리를 비운다.
     processor = InferenceCore(model, config.xmem_config)
     processor.set_all_labels(range(1, num_objects + 1))
-
+    # 추적할 객체 라벨링
+    # logger.info(f"trajectory_length: {trajectory_length}, num_objects: {num_objects}")
     masks = []
 
     with torch.cuda.amp.autocast(enabled=True):
 
         for i in range(0, trajectory_length + 1, config.xmem_output_every):
-
+            # 설정목표로 가는 각각의 이미지를 하나씩 불러온다. config.xmem_output_every는 1이다.
             frame = np.array(Image.open(config.rgb_image_trajectory_path.format(step=i)).convert("RGB"))
+            # 경로상의 이미지를 각각 불러와 열어준다.
 
             frame_torch, _ = image_to_torch(frame, device)
             if i == 0:
@@ -172,6 +181,7 @@ def get_xmem_output(model, device, trajectory_length):
                 prediction = processor.step(frame_torch, mask_torch[1:])
             else:
                 prediction = processor.step(frame_torch)
+                # Xmem에 전달한다.
 
             prediction = torch_prob_to_numpy_mask(prediction)
             masks.append(prediction)

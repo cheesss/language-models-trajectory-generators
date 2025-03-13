@@ -39,7 +39,7 @@ class Environment:
         # object_model = p.loadURDF("ycb_assets/003_cracker_box.urdf",object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
 
         # object_start_position = [random.uniform(-0.2, 0.2), random.uniform(0.4, 0.8), 0.1]
-        # object_start_orientation_e = [0.0, 0.0, random.uniform(-math.pi, math.pi)]ss
+        # object_start_orientation_e = [0.0, 0.0, random.uniform(-math.pi, math.pi)]
         # object_start_orientation_q = p.getQuaternionFromEuler(object_start_orientation_e)
         # object_model = p.loadURDF("ycb_assets/003_cracker_box.urdf",object_start_position, object_start_orientation_q, useFixedBase=False, globalScaling=config.global_scaling)
 
@@ -127,8 +127,8 @@ def run_simulation_environment(args, env_connection, logger):
             if env_connection_received[0] == CAPTURE_IMAGES:
                 #CAPTURE_IMAGES받았을때 pybullet 시뮬레이션 상에서 두 카메라로 찍은 이미지를 전송해준다.
                 
-                # 아래 코드는 의미 없는거같아서 주석처리함
-                # _, _ = robot.get_camera_image("head", env, save_camera_image=True, rgb_image_path=config.rgb_image_trajectory_path.format(step=0), depth_image_path=config.depth_image_trajectory_path.format(step=0))
+                # _0 img 저장
+                _, _ = robot.get_camera_image("head", env, save_camera_image=True, rgb_image_path=config.rgb_image_trajectory_path.format(step=0), depth_image_path=config.depth_image_trajectory_path.format(step=0))
                 
                 head_camera_position, head_camera_orientation_q = robot.get_camera_image("head", env, save_camera_image=True, rgb_image_path=config.rgb_image_head_path, depth_image_path=config.depth_image_head_path)
                 wrist_camera_position, wrist_camera_orientation_q = robot.get_camera_image("wrist", env, save_camera_image=True, rgb_image_path=config.rgb_image_wrist_path, depth_image_path=config.depth_image_wrist_path)
