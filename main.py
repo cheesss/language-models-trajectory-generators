@@ -163,9 +163,9 @@ if __name__ == "__main__":
                 api.failed_task = False
 
             if not api.completed_task:
-
+                logger.info(f"completed_task is False")
                 if api.failed_task:
-
+                    logger.info(f("failed_task is True"))
                     logger.info(FAIL + "FAILED TASK! Generating summary of the task execution attempt..." + ENDC)
 
                     new_prompt += TASK_SUMMARY_PROMPT

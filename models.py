@@ -151,7 +151,7 @@ def get_xmem_output(model, device, trajectory_length):
 
     mask = np.array(Image.open(config.xmem_input_path).convert("L"))
     mask = np.unique(mask, return_inverse=True)[1].reshape(mask.shape)
-    logger.info(f"mask : {mask}")
+    # logger.info(f"mask : {mask}")
     logger.info(f"-----------------------------------------------------------")
     mask_image = Image.fromarray(mask.astype(np.uint8))  # 흑백 이미지로 변환
     mask_image.save("mask.png")

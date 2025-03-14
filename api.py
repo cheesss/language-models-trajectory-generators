@@ -175,8 +175,8 @@ class API:
             # 여기서 xmem에게 이미지를 전달해준 후 성공여부를 확인한다. 
             self.logger.info(OK + "Finished generating XMem output!" + ENDC)
 
-            # num_objects = len(np.unique(masks[0])) - 1
-            num_objects = len(np.unique(masks[0]))
+            num_objects = len(np.unique(masks[0])) - 1
+            # num_objects = len(np.unique(masks[0]))
             # 여기 또 있네
 
             new_prompt = SUCCESS_DETECTION_PROMPT.replace("[INSERT TASK]", self.command)
@@ -205,7 +205,7 @@ class API:
 
                     bounding_cubes, orientations = utils.get_bounding_cube_from_point_cloud(rgb_image, [object_mask], depth_array, self.head_camera_position, self.head_camera_orientation_q, object - 1)
                     if len(bounding_cubes) == 0:
-
+                        
                         self.logger.info("No bounding cube found: removed.")
                         idx_offset += 1
 
