@@ -1,1 +1,1 @@
-[{'scores': tensor([0.5619], device='cuda:0'), 'boxes': tensor([[75.6060, 27.2815, 93.9787, 55.2918]], device='cuda:0'), 'text_labels': ['can'], 'labels': ['can']}]
+[{'scores': tensor([0.5571], device='cuda:0'), 'boxes': tensor([[141.8183,  30.4077, 158.3398,  58.0538]], device='cuda:0'), 'text_labels': ['can'], 'labels': ['can']}]

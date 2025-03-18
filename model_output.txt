@@ -1,7 +1,7 @@
-[{'scores': array([0.5619361], dtype=float32), 'boxes': array([[75.606   , 27.281506, 93.978714, 55.29176 ]], dtype=float32), 'text_labels': ['can'], 'labels': ['can'], 'masks': array([[[0., 0., 0., ..., 0., 0., 0.],
+[{'scores': array([0.5571226], dtype=float32), 'boxes': array([[141.81834 ,  30.407658, 158.3398  ,  58.05383 ]], dtype=float32), 'text_labels': ['can'], 'labels': ['can'], 'masks': array([[[0., 0., 0., ..., 0., 0., 0.],
         [0., 0., 0., ..., 0., 0., 0.],
         [0., 0., 0., ..., 0., 0., 0.],
         ...,
         [0., 0., 0., ..., 0., 0., 0.],
         [0., 0., 0., ..., 0., 0., 0.],
-        [0., 0., 0., ..., 0., 0., 0.]]], dtype=float32), 'mask_scores': array(0.96484375, dtype=float32)}]
+        [0., 0., 0., ..., 0., 0., 0.]]], dtype=float32), 'mask_scores': array(0.9765625, dtype=float32)}]
