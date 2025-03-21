@@ -1,6 +1,6 @@
-logits: [array([0.84389514], dtype=float32)]
-phrases: [['red box']]
-boxes: [array([[212.96832, 139.20473, 432.28824, 267.2679 ]], dtype=float32)]
+logits: [array([0.277473], dtype=float32)]
+phrases: [['can']]
+boxes: [array([[276.41797, 286.64496, 323.21387, 368.18228]], dtype=float32)]
 masks: [array([[[0., 0., 0., ..., 0., 0., 0.],
         [0., 0., 0., ..., 0., 0., 0.],
         [0., 0., 0., ..., 0., 0., 0.],

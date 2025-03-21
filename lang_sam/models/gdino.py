@@ -53,7 +53,7 @@ class GDINO:
         results = self.processor.post_process_grounded_object_detection(
             outputs,
             inputs.input_ids,
-            threshold=threshold,
+            # threshold=threshold,
             text_threshold=text_threshold,
             target_sizes=[k.size[::-1] for k in pil_images],
         )

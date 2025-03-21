@@ -1,7 +1,7 @@
 from realsenseCapture import IntelCamera
-from utils import get_bounding_cube_from_point_cloud
-from utils import get_segmentation_mask
 import utils_raw
+from utils_raw import get_bounding_cube_from_point_cloud
+from utils_raw import get_segmentation_mask
 import numpy as np
 from PIL import Image
 import config
@@ -22,7 +22,7 @@ langsam_model = LangSAM()
 
 rgb_image_head = Image.open(config.rgb_image_head_path).convert("RGB")
 
-model_predictions, boxes, segmentation_texts = models.get_langsam_output(rgb_image_head,langsam_model, segmentation_texts=["red box"], segmentation_count=0)
+model_predictions, boxes, segmentation_texts = models.get_langsam_output(rgb_image_head,langsam_model, segmentation_texts=["can"], segmentation_count=0)
 
 
 masks = get_segmentation_mask(model_predictions, config.segmentation_threshold)
@@ -57,7 +57,7 @@ try:
     bounding_cubes_world_coordinates, bounding_cubes_orientations, contour_pixel_points = get_bounding_cube_from_point_cloud(
         rgb_image_head, masks, depth_array, head_camera_position, camera_orientation_q, depth_image=depth_image ,depth_intrinsics = depth_intrinsics , segmentation_count=0
     )
-
+    # 이게 실행되면서 o3d 시각화도 진행된다
 
 
 finally:

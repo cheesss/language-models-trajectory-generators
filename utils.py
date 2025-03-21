@@ -161,7 +161,7 @@ def get_bounding_cube_from_point_cloud(
 
             if len(world_points_list) == 0:
                 continue
-            print("depth_intrinsic: ", depth_intrinsics)
+            # print("depth_intrinsic: ", depth_intrinsics)
 
             world_points_list = np.array(world_points_list)
 

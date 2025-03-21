@@ -135,8 +135,8 @@ def get_bounding_cube_from_point_cloud( image, masks, depth_array, camera_positi
         # 컨투어 값은 잘 가져오고있다.
         if contour is not None:
 
-            print("depth_array.size: ", depth_array.shape)
-            print("depth_image.shape: ", depth_image.shape)
+            # print("depth_array.size: ", depth_array.shape)
+            # print("depth_image.shape: ", depth_image.shape)
 
             # print("diff:", np.average(depth_array- depth_image*depth_scale))
             contour_pixel_points = [(c, r, depth_array[r][c]) for r in range(image_height) for c in range(image_width) if cv.pointPolygonTest(contour, (r, c), measureDist=False) == 1]
@@ -162,7 +162,7 @@ def get_bounding_cube_from_point_cloud( image, masks, depth_array, camera_positi
             # print("depthA",depth_array[5][10])
             if len(contour_world_points) == 0:
                 continue
-            print("depth_intrinsic: ",depth_intrinsics)
+            # print("depth_intrinsic: ",depth_intrinsics)
             contour_world_points = np.array(contour_world_points)
             # print("Contour world points: ", contour_world_points)
             # --------------------------------
@@ -184,7 +184,7 @@ def get_bounding_cube_from_point_cloud( image, masks, depth_array, camera_positi
             # logging.info("Top surface world points"+str(top_surface_world_points))
             rect = MultiPoint([world_point[:2] for world_point in top_surface_world_points]).minimum_rotated_rectangle
             # logging.info("Rectangle"+str(rect))
-            print(isinstance(rect, Polygon))
+            # print(isinstance(rect, Polygon))
             if isinstance(rect, Polygon):
                 rect = polygon.orient(rect, sign=-1)
                 box = rect.exterior.coords
@@ -203,7 +203,7 @@ def get_bounding_cube_from_point_cloud( image, masks, depth_array, camera_positi
                 bounding_cubes_orientations.append([bounding_cubes_orientation_width, bounding_cubes_orientation_length])
 
     bounding_cubes = np.array(bounding_cubes)
-    print(bounding_cubes)
+    # print(bounding_cubes)
     return bounding_cubes, bounding_cubes_orientations, contour_pixel_points
 
 
@@ -252,6 +252,8 @@ def outier_removed_point_cloud(points):
     # point_cloud.points = o3d.utility.Vector3dVector(point_T.T[:, :-1])
 
     o3d.visualization.draw_geometries([inlier_cloud,frame, c_frame])
+    # inlier cloud는 아웃라이어가 제거된 3D point cloud이고, 나머지 두개는 좌표계이다.
     # o3d.visualization.draw_geometries([voxel_down_pcd, frame])
-    
+    o3d.io.write_point_cloud("inlier_cloud.pcd", inlier_cloud)
+    print(inlier_cloud)
     return inlier_cloud
