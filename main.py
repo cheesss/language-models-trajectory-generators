@@ -116,7 +116,6 @@ if __name__ == "__main__":
     messages = models.get_chatgpt_output(args.language_model, new_prompt, messages, "system")
     # 언어 모델, 프롬프트를 정하여 정해준다.
     # 이 함수에서 메모리 기능을 적용해야한다.
-    # 으하하
     
     logger.info(OK + "Finished generating ChatGPT output!" + ENDC)
 
