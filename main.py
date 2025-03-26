@@ -10,6 +10,7 @@ import multiprocessing
 import logging
 import functools
 import models
+import time
 import config
 from lang_sam import LangSAM
 from multiprocessing import Process, Pipe
@@ -23,6 +24,7 @@ from prompts.print_output_prompt import PRINT_OUTPUT_PROMPT
 from prompts.task_failure_prompt import TASK_FAILURE_PROMPT
 from prompts.task_summary_prompt import TASK_SUMMARY_PROMPT
 from config import OK, PROGRESS, FAIL, ENDC
+from openai import OpenAI
 
 sys.path.append("./XMem/")
 print = functools.partial(print, flush=True)
@@ -38,15 +40,13 @@ def save_code_block_to_file(code_block, file_name="code_blocks.txt"):
         file.write("\n\n")  
 
 
-
-
 load_dotenv("openaiAPI.env")
 api_key = os.getenv("api_key")
 # api_key가져오기
 
 if __name__ == "__main__":
 
-    openai.api_key = api_key
+    # openai.api_key = api_key
 
     # Parse args
     parser = argparse.ArgumentParser(description="Main Program.")
@@ -64,7 +64,7 @@ if __name__ == "__main__":
         logger.info("Using GPU.")
         device = torch.device("cuda")
     else:
-        logger.info("CUDA not available. Please connect to a GPU instance if possible.")
+        logger.info("CUDA not available. Using CPU instead.")
         device = torch.device("cpu")
 
     torch.set_grad_enabled(False)
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     # ChatGPT
     logger.info(PROGRESS + "STARTING TASK..." + ENDC)
 
-    messages = [] # get_chatgpt_output()에 있어도 상관없을
+    messages = []
 
     error = False
 
@@ -113,30 +113,79 @@ if __name__ == "__main__":
 
     logger.info(PROGRESS + "Generating ChatGPT output..." + ENDC) #ENDC means that Enter
 
-    messages = models.get_chatgpt_output(args.language_model, new_prompt, messages, "system")
+    # 초기 위치와 유저의 명령을 합친 프롬프트를 전달해준다.
+    # messages = models.get_chatgpt_output(args.language_model, new_prompt, messages, "system")
     # 언어 모델, 프롬프트를 정하여 정해준다.
     # 이 함수에서 메모리 기능을 적용해야한다.
     
-    logger.info(OK + "Finished generating ChatGPT output!" + ENDC)
 
+    
+    # 원래 new_prompt에 디폴트 프롬프트 내용이 포함되어 들어가므로, 해당 내용을 intsructions에 넣어줘야한다. 다시 넣어줄 필요는 없다.
+    # INPUT: [INSERT EE POSITION], [INSERT TASK] 이 두개가 메인프롬프트로 들어간다.
+    # =================================================================
+    client = OpenAI(api_key=api_key)
+    thread = client.beta.threads.create()
+    assistant = client.beta.assistants.create(
+        name="VLM applied 6 degrees of freedom menipulator robot",
+        instructions="""You are a sentient AI that only writes Python code to control a robot arm. You must not execute any functions. Your only job is to plan and write code, not run it. You should produce code to control a robot arm by generating Python code which outputs a list of trajectory points for the robot arm end-effector to follow to complete a given user command.
+Each element in the trajectory list is an end-effector pose, and should be of length 4, comprising a 3D position and a rotation value. Never try to run the code alone, just follow the instructions below.""",
+        model="gpt-4o",
+        tools=[{"type": "code_interpreter"}]
+    )
+    # print("client 생성 성공")
+    # =================================================================
+    print("first time sending prompt to GPT========================================")
+    messages = client.beta.threads.messages.create(
+        thread_id=thread.id,
+        role="user",
+        content=new_prompt,
+    )
+    # print("메세지 전달 성공")
+    
+    run = client.beta.threads.runs.create(
+    thread_id=thread.id,
+    assistant_id=assistant.id
+    )   
+    # print("실행 성공")
+    
+    while run.status != "completed":
+        run = client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
+    # 반환시까지 반복
+        
+    messages = list(client.beta.threads.messages.list(thread_id=thread.id))
+    # 가장 마지막 메시지를 가져와서 텍스트 추출
+    # print(f"this is messages from GPT: {messages}")
+    
+    last_message = next(
+    (msg for msg in reversed(messages) if msg.role == "assistant"),
+    None
+    )
+    # gpt 출력 중 답변부만 추출
+    
+    
+    text_string = last_message.content[0].text.value  # 실제 텍스트
+    print(f"text_string: {text_string}")
+    
+    # print(OK + "Finished generating ChatGPT output!" + str(messages.data[0].content) + ENDC)
     while True:
 
         while not api.completed_task:
 
             new_prompt = ""
 
-            if len(messages[-1]["content"].split("```python")) > 1:
+            # if len(messages[-1]["content"].split("```python")) > 1:
+            if "```python" in text_string:
                 # llm이 전달해준 메세지를 자른다. 
-                code_block = messages[-1]["content"].split("```python")
+                # code_block = messages[-1]["content"].split("```python")    
+                code_block = text_string.split("```python")
                 #   {"role": "assistant", "content": "```python\nprint('Hello, World!')\n```"} 꼴의 데이터에서 'Hello, World!'를 가져온다,
                 #   코드가 리턴되므로 코드 블럭이라는 변수에 저장해준다.
                 block_number = 0
-                save_code_block_to_file(code_block)
+                # save_code_block_to_file(code_block)
                 for block in code_block:
-                    if len(block.split("```")) > 1:
-                        # 생성된 코드문을 받은 후, ''' -------''' 기준으로 쪼개 실행한다.
-                        code = block.split("```")[0]
-                        save_code_block_to_file(code)
+                    if "```" in block:
+                        code = block.split("```")[0].strip()  # 코드만 깔끔하게 추출
+                        save_code_block_to_file(code)        # 저장 함수 호출
                         block_number += 1
                         try:
                             f = StringIO()
@@ -146,7 +195,7 @@ if __name__ == "__main__":
                     # 만약 llm이 detect_object("box")를 실행하기로 결정한다면, 위에서 정의한 detect_object = api.detect_object가 실행된다.
                         except Exception:
                             error_message = traceback.format_exc()
-                            new_prompt += ERROR_CORRECTION_PROMPT.replace("[INSERT BLOCK NUMBER]", str(block_number)).replace("[INSERT ERROR MESSAGE]", error_message)
+                            new_prompt = ERROR_CORRECTION_PROMPT.replace("[INSERT BLOCK NUMBER]", str(block_number)).replace("[INSERT ERROR MESSAGE]", error_message)
                             # 에러메세지를 다시 전달한다. 
                             new_prompt += "\n"
                             error = True
@@ -154,8 +203,10 @@ if __name__ == "__main__":
                             s = f.getvalue()
                             error = False
                             if s != "" and len(s) < 2000:
-                                new_prompt += PRINT_OUTPUT_PROMPT.replace("[INSERT PRINT STATEMENT OUTPUT]", s)
-                                new_prompt += "\n"
+                                print(f"s is: {s}")
+                                new_prompt_2 = PRINT_OUTPUT_PROMPT.replace("[INSERT PRINT STATEMENT OUTPUT]", s)
+                                # 여기에 출력 또는 앞 코드 실행 결과가 저장된다.
+                                new_prompt_2 += "\n"
                                 error = True
                             
             if error:
@@ -169,12 +220,29 @@ if __name__ == "__main__":
                     logger.info(f("failed_task is True"))
                     logger.info(FAIL + "FAILED TASK! Generating summary of the task execution attempt..." + ENDC)
 
-                    new_prompt += TASK_SUMMARY_PROMPT
+                    new_prompt = TASK_SUMMARY_PROMPT
                     # 이전 프롬프트에 실패했다는 내용을 더하여 전달
                     new_prompt += "\n"
                     # 작동 실패시 이전 내용을 요약하여 다시 리턴
                     logger.info(PROGRESS + "Generating ChatGPT output..." + ENDC)
-                    messages = models.get_chatgpt_output(args.language_model, new_prompt, messages, "user")
+                    # messages = models.get_chatgpt_output(args.language_model, new_prompt, messages, "user")
+                    
+                    
+                    # =================================================================memory 기능 추가
+                    print("failed task!======================================")
+                    messages = client.beta.threads.messages.create(
+                        thread_id=thread.id,
+                        role="user",
+                        content=new_prompt,
+                        file_ids=[],
+                        metadata={}
+                    )
+                    logger.info("This is memory function test message")
+                    logger.info(PROGRESS + messages + ENDC)
+                    # 아직 완료가 되지 않았고, 지금까지 한걸 요약해서 알려달라고 했다. 제대로 출력된다면 메모리 기능이 정상작동하는걸로 볼 수 있다.
+                    # =================================================================
+                    
+                    
                     # 실패한 내용과, 이전 메세지를 같이 전달
                     logger.info(OK + "Finished generating ChatGPT output!" + ENDC)
 
@@ -187,25 +255,85 @@ if __name__ == "__main__":
                     messages = []
 
                     error = False
+                    
+                    
+                    
 
                     logger.info(PROGRESS + "Generating ChatGPT output..." + ENDC)
-                    messages = models.get_chatgpt_output(args.language_model, new_prompt, messages, "system")
+                    # messages = models.get_chatgpt_output(args.language_model, new_prompt, messages, "system")
+                    # =================================================================memory 기능 추가
+                    print("Don't know exactly========================================")
+                    messages = client.beta.threads.messages.create(
+                        thread_id=thread.id,
+                        role="user",
+                        content=TASK_FAILURE_PROMPT,
+                    )
+                    logger.info("This is memory function test message")
+                    # =================================================================
+                    
+                    
+                    logger.info(OK + "Finished generating ChatGPT output!" + ENDC)
+
+                    api.failed_task = False
                     logger.info(OK + "Finished generating ChatGPT output!" + ENDC)
 
                     api.failed_task = False
 
                 else:
-
+                    # fail은 아니지만 not finished일때 실행된다. messages 로 s가 온다.
                     logger.info(PROGRESS + "Generating ChatGPT output..." + ENDC)
-                    messages = models.get_chatgpt_output(args.language_model, new_prompt, messages, "user")
-                    logger.info(OK + "Finished generating ChatGPT output!" + ENDC)
+                    # messages = models.get_chatgpt_output(args.language_model, new_prompt, messages, "user")
+                    print("not finished task but not failed=====================================")
+                    messages = client.beta.threads.messages.create(
+                        thread_id=thread.id,
+                        role="user",
+                        content=new_prompt_2,
+                    )
 
+                    logger.info(OK + "Finished generating ChatGPT output!" + new_prompt_2 + ENDC)
+                    
+                    
+                    run = client.beta.threads.runs.create(
+                        thread_id=thread.id,
+                        assistant_id=assistant.id
+                    )   
+                    # print("실행 성공")
+                    
+                    while run.status != "completed":
+                        run = client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
+                    # 반환시까지 반복
+                        
+                    messages = list(client.beta.threads.messages.list(thread_id=thread.id, limit=1))
+                    # 가장 마지막 메시지를 가져와서 텍스트 추출
+                    # print(f"this is messages from GPT: {messages}")
+                    
+
+                    
+                    last_message = next(
+                    (msg for msg in reversed(messages) if msg.role == "assistant"),
+                    None
+                    )
+                    # gpt 출력 중 답변부만 추출
+                    
+                    
+                    text_string = last_message.content[0].text.value  # 실제 텍스트
+                    print(f"text_string: {text_string}")
+                    print(f"from GPT after detect_object: {text_string}")
+    
+    
+        # api.completed_task = True 이면 여기로 온다. 
         logger.info(OK + "FINISHED TASK!" + ENDC)
 
         new_prompt = input("Enter a command: ")
-        # 실행 마무리되면 원래 다음 명령 넣는듯
         logger.info(PROGRESS + "Generating ChatGPT output..." + ENDC)
-        messages = models.get_chatgpt_output(args.language_model, new_prompt, messages, "user")
+        # messages = models.get_chatgpt_output(
+        #     args.language_model, new_prompt, messages, "user"
+        print("End of previous task! Let's start again==================================================")
+        messages = client.beta.threads.messages.create(
+            thread_id=thread.id,
+            role="user",
+            content=new_prompt
+        )
         logger.info(OK + "Finished generating ChatGPT output!" + ENDC)
 
         api.completed_task = False

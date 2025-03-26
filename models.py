@@ -1,3 +1,5 @@
+# 메모리 기능 추가
+
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
@@ -12,6 +14,7 @@ import os
 import json
 import multiprocessing
 from PIL import Image
+import time
 
 sys.path.append("./XMem/")
 load_dotenv("openaiAPI.env")
@@ -112,7 +115,7 @@ def get_langsam_output(image, model, segmentation_texts, segmentation_count):
 
 
 def get_chatgpt_output(model, new_prompt, messages, role, file=sys.stdout):
-
+    # model명, 프롬프트, 메세지, 역할, 
     print(role + ":", file=file)
     print(new_prompt, file=file)
     messages.append({"role":role, "content":new_prompt})
