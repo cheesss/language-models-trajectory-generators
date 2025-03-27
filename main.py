@@ -127,26 +127,25 @@ if __name__ == "__main__":
     thread = client.beta.threads.create()
     assistant = client.beta.assistants.create(
         name="VLM applied 6 degrees of freedom menipulator robot",
-        instructions="""You are a sentient AI that only writes Python code to control a robot arm. You must not execute any functions. Your only job is to plan and write code, not run it. You should produce code to control a robot arm by generating Python code which outputs a list of trajectory points for the robot arm end-effector to follow to complete a given user command.
-Each element in the trajectory list is an end-effector pose, and should be of length 4, comprising a 3D position and a rotation value. Never try to run the code alone, just follow the instructions below.""",
-        model="gpt-4o",
+        instructions="""You are a sentient AI that only writes Python code to control a robot arm. You must not execute any functions. Your only job is to plan and write code, not run it. You should produce code to control a robot 
+                        arm by generating Python code which outputs a list of trajectory points for the robot arm end-effector to follow to complete a given user command.
+                        Each element in the trajectory list is an end-effector pose, and should be of length 4, comprising a 3D position and a rotation value. Never try to run the code alone, just follow the instructions below.""",
+        model="gpt-4o-mini",
         tools=[{"type": "code_interpreter"}]
     )
-    # print("client 생성 성공")
     # =================================================================
-    print("first time sending prompt to GPT========================================")
     messages = client.beta.threads.messages.create(
         thread_id=thread.id,
         role="user",
         content=new_prompt,
     )
-    # print("메세지 전달 성공")
+ 
     
     run = client.beta.threads.runs.create(
     thread_id=thread.id,
     assistant_id=assistant.id
     )   
-    # print("실행 성공")
+ 
     
     while run.status != "completed":
         run = client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
@@ -154,16 +153,15 @@ Each element in the trajectory list is an end-effector pose, and should be of le
         
     messages = list(client.beta.threads.messages.list(thread_id=thread.id))
     # 가장 마지막 메시지를 가져와서 텍스트 추출
-    # print(f"this is messages from GPT: {messages}")
     
     last_message = next(
-    (msg for msg in reversed(messages) if msg.role == "assistant"),
+    (msg for msg in messages if msg.role == "assistant"),
     None
     )
     # gpt 출력 중 답변부만 추출
     
     
-    text_string = last_message.content[0].text.value  # 실제 텍스트
+    text_string = last_message.content[0].text.value
     print(f"text_string: {text_string}")
     
     # print(OK + "Finished generating ChatGPT output!" + str(messages.data[0].content) + ENDC)
@@ -228,19 +226,40 @@ Each element in the trajectory list is an end-effector pose, and should be of le
                     # messages = models.get_chatgpt_output(args.language_model, new_prompt, messages, "user")
                     
                     
+                    
                     # =================================================================memory 기능 추가
-                    print("failed task!======================================")
                     messages = client.beta.threads.messages.create(
                         thread_id=thread.id,
                         role="user",
-                        content=new_prompt,
-                        file_ids=[],
-                        metadata={}
+                        content=new_prompt_2,
                     )
-                    logger.info("This is memory function test message")
-                    logger.info(PROGRESS + messages + ENDC)
+                    
+                    run = client.beta.threads.runs.create(
+                        thread_id=thread.id,
+                        assistant_id=assistant.id
+                    )  
+                    
+                    while run.status != "completed":
+                        run = client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
+                    # 반환시까지 반복
+                    
+                    messages = list(client.beta.threads.messages.list(thread_id=thread.id, limit=20))
+                    # 가장 마지막 메시지를 가져와서 텍스트 추출
+                    
+           
+                    
+                    last_message = next(
+                    (msg for msg in messages if msg.role == "assistant"),
+                    None
+                    )
+                    # gpt 출력 중 답변부만 추출
+                    
+                    text_string = last_message.content[0].text.value
+                    
                     # 아직 완료가 되지 않았고, 지금까지 한걸 요약해서 알려달라고 했다. 제대로 출력된다면 메모리 기능이 정상작동하는걸로 볼 수 있다.
                     # =================================================================
+                    
+                    
                     
                     
                     # 실패한 내용과, 이전 메세지를 같이 전달
@@ -248,10 +267,9 @@ Each element in the trajectory list is an end-effector pose, and should be of le
 
                     logger.info(PROGRESS + "RETRYING TASK..." + ENDC)
 
-                    new_prompt = MAIN_PROMPT.replace("[INSERT EE POSITION]", str(config.ee_start_position)).replace("[INSERT TASK]", command)
-                    new_prompt += "\n"
-                    new_prompt += TASK_FAILURE_PROMPT.replace("[INSERT TASK SUMMARY]", messages[-1]["content"])
-
+                    # new_prompt = MAIN_PROMPT.replace("[INSERT EE POSITION]", str(config.ee_start_position)).replace("[INSERT TASK]", command)
+                    # new_prompt += "\n"
+                    # new_prompt += TASK_FAILURE_PROMPT.replace("[INSERT TASK SUMMARY]", messages[-1]["content"])
                     messages = []
 
                     error = False
@@ -261,21 +279,12 @@ Each element in the trajectory list is an end-effector pose, and should be of le
 
                     logger.info(PROGRESS + "Generating ChatGPT output..." + ENDC)
                     # messages = models.get_chatgpt_output(args.language_model, new_prompt, messages, "system")
-                    # =================================================================memory 기능 추가
-                    print("Don't know exactly========================================")
-                    messages = client.beta.threads.messages.create(
-                        thread_id=thread.id,
-                        role="user",
-                        content=TASK_FAILURE_PROMPT,
-                    )
-                    logger.info("This is memory function test message")
-                    # =================================================================
                     
                     
-                    logger.info(OK + "Finished generating ChatGPT output!" + ENDC)
+                    # logger.info(OK + "Finished generating ChatGPT output!" + ENDC)
 
                     api.failed_task = False
-                    logger.info(OK + "Finished generating ChatGPT output!" + ENDC)
+                    # logger.info(OK + "Finished generating ChatGPT output!" + ENDC)
 
                     api.failed_task = False
 
@@ -283,7 +292,6 @@ Each element in the trajectory list is an end-effector pose, and should be of le
                     # fail은 아니지만 not finished일때 실행된다. messages 로 s가 온다.
                     logger.info(PROGRESS + "Generating ChatGPT output..." + ENDC)
                     # messages = models.get_chatgpt_output(args.language_model, new_prompt, messages, "user")
-                    print("not finished task but not failed=====================================")
                     messages = client.beta.threads.messages.create(
                         thread_id=thread.id,
                         role="user",
@@ -297,28 +305,25 @@ Each element in the trajectory list is an end-effector pose, and should be of le
                         thread_id=thread.id,
                         assistant_id=assistant.id
                     )   
-                    # print("실행 성공")
-                    
+
                     while run.status != "completed":
                         run = client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
                     # 반환시까지 반복
-                        
-                    messages = list(client.beta.threads.messages.list(thread_id=thread.id, limit=1))
-                    # 가장 마지막 메시지를 가져와서 텍스트 추출
-                    # print(f"this is messages from GPT: {messages}")
                     
-
+           
+                    
+                    messages = list(client.beta.threads.messages.list(thread_id=thread.id, limit=20))
+                    # 가장 마지막 메시지를 가져와서 텍스트 추출
+                    
+           
                     
                     last_message = next(
-                    (msg for msg in reversed(messages) if msg.role == "assistant"),
+                    (msg for msg in messages if msg.role == "assistant"),
                     None
                     )
                     # gpt 출력 중 답변부만 추출
                     
-                    
-                    text_string = last_message.content[0].text.value  # 실제 텍스트
-                    print(f"text_string: {text_string}")
-                    print(f"from GPT after detect_object: {text_string}")
+                    text_string = last_message.content[0].text.value
     
     
         # api.completed_task = True 이면 여기로 온다. 

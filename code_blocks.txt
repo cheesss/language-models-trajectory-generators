@@ -1,193 +1,258 @@
-# Detect the can in the environment to get its position and dimensions.
 detect_object("can")
 
-import numpy as np
+def trajectory_1(rotation: float) -> list:
+    # Define a trajectory to rotate to the desired angle
+    return [[0.0, 0.6, 0.55, rotation]]
 
-def approach_trajectory(start_pos, can_pos, orientation=0):
-    """
-    Generates a trajectory from the start position to directly above the can.
-    
-    :param start_pos: Starting position of the end-effector.
-    :param can_pos: Position of the can.
-    :param orientation: Orientation angle of the end-effector in radians.
-    :return: List of trajectory points.
-    """
-    # Calculate the approach position
-    approach_pos = [can_pos[0], can_pos[1], start_pos[2]]
-    
-    # Create a linear trajectory from start_pos to approach_pos
-    trajectory = []
-    for t in np.linspace(0, 1, 100):
-        x = start_pos[0] + t * (approach_pos[0] - start_pos[0])
-        y = start_pos[1] + t * (approach_pos[1] - start_pos[1])
-        z = start_pos[2] + t * (approach_pos[2] - start_pos[2])
-        trajectory.append([x, y, z, orientation])
-    return trajectory
-
-def descend_trajectory(approach_pos, can_pos, orientation=0):
-    """
-    Generates a trajectory from above the can to a position to grasp it.
-    
-    :param approach_pos: Position directly above the can.
-    :param can_pos: Position of the can to grasp.
-    :param orientation: Orientation angle of the end-effector in radians.
-    :return: List of trajectory points.
-    """
-    # Create a linear trajectory from approach_pos to can_pos
-    trajectory = []
-    for t in np.linspace(0, 1, 100):
-        x = approach_pos[0]
-        y = approach_pos[1]
-        z = approach_pos[2] + t * (can_pos[2] - approach_pos[2] + 0.05) # 0.05 is an added margin
-        trajectory.append([x, y, z, orientation])
-    return trajectory
-
-# The starting position of the end-effector
-start_pos = [0.0, 0.6, 0.55]  # Initial position given
-
-# Assuming can_pos was obtained from the detection step
-# For demonstration, let's assume:
-can_pos = [0.2, 0.8, 0.2]  # Placeholder for can's position
-
-# Plan and execute approach trajectory
-trajectory1 = approach_trajectory(start_pos, can_pos)
-execute_trajectory(trajectory1)
-
-# Plan and execute descend trajectory
-trajectory2 = descend_trajectory(trajectory1[-1], can_pos)
-execute_trajectory(trajectory2)
-
-# Close gripper to grasp can
-close_gripper()
-
-# The actual lift and return trajectories would be handled similarly:
-# Plan lift trajectory
-# output lift trajectory execution code
-# Plan return trajectory
-# output return trajectory execution code
-
-# Final task completion indication
-# task_completed()
-
-# Detect the can in the environment to get its position and dimensions.
-detect_object("can")
-
-# Step 1: Detect the can
-detect_object("can")
-
-# Step 1: Detect the can
-detect_object("can")
-
-# Step 1: Detect the can
-detect_object("can")
-
-# Step 1: Detect the can
-detect_object("can")
-
-# Step 1: Detect the can
-detect_object("can")
-
-# Step 1: Detect the can
-detect_object("can")
-
-# Step 1: Detect the can
-detect_object("can")
-
-# Step 1: Detect the can
-detect_object("can")
-
-# Step 1: Detect the can
-detect_object("can")
-
-# Detect the can in the environment
-detect_object("can")
-
-# Detect the can in the environment
-detect_object("can")
-
-['', '\n# Step 1: Detect the can in the environment.\ndetect_object("can")\n```']
-
-
-# Step 1: Detect the can in the environment.
-detect_object("can")
-
-
-['', "\n# Step 2: Since there is only one can detected, we will interact with it.\n# The best approach is to grasp the can from its narrower side (width) to ensure a secure grip.\n\n# The can's dimensions are:\n# Width: 0.053\n# Length: 0.046\n# Height: 0.077\n# Position: [-0.122, 0.599, 0.056]\n\n# We will approach the can from above, rotate the end effector to align with the width, and then lower to grasp it.\n\n# Step 3: Define the trajectory to approach the can, rotate, and grasp it.\n# The initial position of the end-effector is [0.0, 0.6, 0.55] with rotation 0.\n\n# Define the trajectory to move above the can, rotate, and lower to grasp it.\ndef trajectory_1():\n    # Move to above the can\n    trajectory = [\n        [0.0, 0.6, 0.55, 0],  # Start position\n        [-0.122, 0.599, 0.1, 0],  # Move above the can\n        [-0.122, 0.599, 0.1, -1.5708],  # Rotate to align with the width of the can\n        [-0.122, 0.599, 0.056, -1.5708]  # Lower to grasp the can\n    ]\n    return trajectory\n\n# Execute the first trajectory\ntrajectory_1_points = trajectory_1()\nexecute_trajectory(trajectory_1_points)\n```"]
-
-
-# Step 2: Since there is only one can detected, we will interact with it.
-# The best approach is to grasp the can from its narrower side (width) to ensure a secure grip.
-
-# The can's dimensions are:
-# Width: 0.053
-# Length: 0.046
-# Height: 0.077
-# Position: [-0.122, 0.599, 0.056]
-
-# We will approach the can from above, rotate the end effector to align with the width, and then lower to grasp it.
-
-# Step 3: Define the trajectory to approach the can, rotate, and grasp it.
-# The initial position of the end-effector is [0.0, 0.6, 0.55] with rotation 0.
-
-# Define the trajectory to move above the can, rotate, and lower to grasp it.
-def trajectory_1():
-    # Move to above the can
-    trajectory = [
-        [0.0, 0.6, 0.55, 0],  # Start position
-        [-0.122, 0.599, 0.1, 0],  # Move above the can
-        [-0.122, 0.599, 0.1, -1.5708],  # Rotate to align with the width of the can
-        [-0.122, 0.599, 0.056, -1.5708]  # Lower to grasp the can
-    ]
-    return trajectory
-
-# Execute the first trajectory
-trajectory_1_points = trajectory_1()
+# Execute trajectory 1 to rotate the end-effector
+trajectory_1_points = trajectory_1(-1.5708)
 execute_trajectory(trajectory_1_points)
 
+def trajectory_2(target_position: list, rotation: float) -> list:
+    # Define a trajectory to move down above the can position
+    return [target_position + [rotation]]
+
+# Execute trajectory 2 to move down above the can
+trajectory_2_points = trajectory_2([-0.036, 0.448, 0.064], -1.5708)
+execute_trajectory(trajectory_2_points)
+
+def trajectory_3(target_position: list, rotation: float) -> list:
+    # Define a trajectory to lower the gripper to the can's height
+    return [target_position + [rotation]]
+
+# Execute trajectory 3 to lower the gripper for grasping the can
+trajectory_3_points = trajectory_3([-0.036, 0.448, 0.054], -1.5708)
+execute_trajectory(trajectory_3_points)
 
 detect_object("can")
 
-detect_object("can")
+def trajectory_1_move_to_above_can():
+    # Trajectory points to move to the position slightly above the can
+    trajectory = []
+    # Current position before moving
+    start_position = [0.0, 0.6, 0.55]
+    
+    # Target position above the can
+    target_position = [-0.081, 0.42, 0.156]
+    # Generate trajectory points for a straight-line motion
+    steps = 100
+    for i in range(steps):
+        t = i / (steps - 1)
+        position = [
+            (1 - t) * start_position[0] + t * target_position[0],
+            (1 - t) * start_position[1] + t * target_position[1],
+            (1 - t) * start_position[2] + t * target_position[2]
+        ]
+        # Appending to trajectory (position + rotation)
+        trajectory.append(position + [0])  # Rotation is 0 for this move
+    return trajectory
+
+trajectory_1 = trajectory_1_move_to_above_can()
+execute_trajectory(trajectory_1)
+
+def trajectory_2_rotate_to_shorter_side():
+    # Trajectory points to rotate the end effector
+    trajectory = []
+    # Position above the can
+    position = [-0.081, 0.42, 0.156]
+    # Target rotation to align with can's shorter side
+    target_rotation = -0.135
+    # Generate trajectory points for a smooth rotation
+    steps = 100
+    for i in range(steps):
+        t = i / (steps - 1)
+        # Interpolating rotation between 0 and target_rotation
+        rotation = (1 - t) * 0 + t * target_rotation
+        # Appending (position + rotation) to trajectory
+        trajectory.append(position + [rotation])
+    return trajectory
+
+trajectory_2 = trajectory_2_rotate_to_shorter_side()
+execute_trajectory(trajectory_2)
+
+def trajectory_3_lower_to_grasp_can():
+    # Trajectory points to move down to grasp the can
+    trajectory = []
+    # Current position before moving down
+    start_position = [-0.081, 0.42, 0.156]  # Position above the can
+    # Target position to grasp the can
+    target_position = [-0.081, 0.42, 0.056]  
+    # Generate trajectory points for a straight-line motion downwards
+    steps = 100
+    for i in range(steps):
+        t = i / (steps - 1)
+        position = [
+            (1 - t) * start_position[0] + t * target_position[0],
+            (1 - t) * start_position[1] + t * target_position[1],
+            (1 - t) * start_position[2] + t * target_position[2]
+        ]
+        # Appending to trajectory (position + rotation)
+        trajectory.append(position + [-0.135])  # Rotation remains -0.135 during this motion
+    return trajectory
+
+trajectory_3 = trajectory_3_lower_to_grasp_can()
+execute_trajectory(trajectory_3)
+
+def trajectory_4_close_gripper():
+    # There is no trajectory needed for gripper action, just close it
+    close_gripper()
+    return
+
+# Execute the function to close the gripper
+trajectory_4_close_gripper()
+
+task_completed()
 
 detect_object("can")
 
-# Begin by detecting the "can" object to gather its position, orientation, and dimensions.
-detect_object('can')
+def trajectory_1_approach_can():
+    # Position above the can, just behind it for safe approach
+    start_position = [0.082, 0.443 - 0.1, 0.056 + 0.1]  # slightly above and behind
+    rotation = 0.041  # orientation to align with the can's width
 
-# Begin by detecting the "can" object to gather its position, orientation, and dimensions.
-detect_object('can')
+    trajectory = []
+    # Move to approach position (with the rotation)
+    trajectory.append(start_position + [rotation])
+    
+    # Generating approach trajectory points with default speed
+    for i in range(1, 101):
+        # Linear interpolation to approach the can
+        position = [
+            start_position[0], 
+            start_position[1] + (i * (0.1 / 100)),  # move towards the can
+            start_position[2]
+        ]
+        trajectory.append(position + [rotation])
+    
+    print("Trajectory 1 calculated")
+    return trajectory
 
-# Detect the can to gather information needed for planning the trajectory
+trajectory_1 = trajectory_1_approach_can()
+execute_trajectory(trajectory_1)
+
+def trajectory_2_lower_gripper():
+    # Starting position is the last position from trajectory_1 (just above the can)
+    current_position = [0.082, 0.443, 0.056 + 0.1]  # Slightly higher than the can
+    rotation = 0.041  # keeping the same rotation
+    
+    trajectory = []
+
+    # Lower to the can's height
+    trajectory.append(current_position + [rotation])
+    
+    # Generating lower trajectory points
+    for i in range(1, 101):
+        # Linear interpolation to lower the gripper
+        position = [
+            current_position[0], 
+            current_position[1],  # Stay directly above the can
+            current_position[2] - (i * (0.1 / 100)),  # Lower position to the can's height
+        ]
+        trajectory.append(position + [rotation])
+    
+    print("Trajectory 2 calculated")
+    return trajectory
+
+trajectory_2 = trajectory_2_lower_gripper()
+execute_trajectory(trajectory_2)
+
+# Close the gripper to grasp the can
+close_gripper()
+
+def trajectory_3_lift_can():
+    # Current position is the height of the can
+    current_position = [0.082, 0.443, 0.056]  # The can's height
+    lift_height = 0.1  # Lifting to a safe height above the tabletop
+    rotation = 0.041  # Keeping the same rotation
+
+    trajectory = []
+
+    # Start from the can's height
+    trajectory.append(current_position + [rotation])
+    
+    # Generating lift trajectory points
+    for i in range(1, 101):
+        # Linear interpolation to lift the can 
+        position = [
+            current_position[0], 
+            current_position[1],  # x and y stay the same
+            current_position[2] + (i * (lift_height / 100)),  # Lift upwards
+        ]
+        trajectory.append(position + [rotation])
+
+    print("Trajectory 3 calculated")
+    return trajectory
+
+trajectory_3 = trajectory_3_lift_can()
+execute_trajectory(trajectory_3)
+
+# Mark the task as completed
+task_completed()
+
+# Step 1: Detect the can
 detect_object("can")
 
-# Detect the can to gather information needed for planning the trajectory
-detect_object("can")
+# Step 2: Execute trajectory to approach the can
+def trajectory_1_approach_can():
+    start_position = [0.082, 0.443 - 0.1, 0.056 + 0.1]
+    rotation = 0.041
+    trajectory = []
+    trajectory.append(start_position + [rotation])
+    for i in range(1, 101):
+        position = [
+            start_position[0], 
+            start_position[1] + (i * (0.1 / 100)), 
+            start_position[2]
+        ]
+        trajectory.append(position + [rotation])
+    print("Trajectory 1 calculated")
+    return trajectory
 
-# Detect the can to gather information needed for planning the trajectory
-detect_object("can")
+trajectory_1 = trajectory_1_approach_can()
+execute_trajectory(trajectory_1)
 
-# Detect the can to gather its position, orientation, and dimensions
-detect_object("can")
+# Step 3: Execute trajectory to lower the gripper
+def trajectory_2_lower_gripper():
+    current_position = [0.082, 0.443, 0.056 + 0.1]
+    rotation = 0.041
+    trajectory = []
+    trajectory.append(current_position + [rotation])
+    for i in range(1, 101):
+        position = [
+            current_position[0], 
+            current_position[1],  
+            current_position[2] - (i * (0.1 / 100)),  
+        ]
+        trajectory.append(position + [rotation])
+    print("Trajectory 2 calculated")
+    return trajectory
 
-# Detect the can to gather its position, orientation, and dimensions
-detect_object("can")
+trajectory_2 = trajectory_2_lower_gripper()
+execute_trajectory(trajectory_2)
 
-# Detect the can to gather its position, orientation, and dimensions
-detect_object("can")
+# Step 4: Close the gripper to grasp the can
+close_gripper()
 
-# Detect the can in the environment
-detect_object("can")
+# Step 5: Execute trajectory to lift the can
+def trajectory_3_lift_can():
+    current_position = [0.082, 0.443, 0.056]
+    lift_height = 0.1  
+    rotation = 0.041  
+    trajectory = []
+    trajectory.append(current_position + [rotation])
+    for i in range(1, 101):
+        position = [
+            current_position[0], 
+            current_position[1], 
+            current_position[2] + (i * (lift_height / 100)),  
+        ]
+        trajectory.append(position + [rotation])
+    print("Trajectory 3 calculated")
+    return trajectory
 
-# Detect the can in the environment
-detect_object("can")
+trajectory_3 = trajectory_3_lift_can()
+execute_trajectory(trajectory_3)
 
-detect_object("can")
-
-detect_object("can")
-
-# Detect the "can" object in the environment
-detect_object("can")
-
-# Detect the "can" object in the environment
-detect_object("can")
+# Step 6: Mark the task as completed
+task_completed()
 
