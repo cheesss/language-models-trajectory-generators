@@ -256,3 +256,247 @@ execute_trajectory(trajectory_3)
 # Step 6: Mark the task as completed
 task_completed()
 
+detect_object("can")
+
+def trajectory_1():
+    # Step 1: Move to a safe height above the can
+    start_point = [0.0, 0.6, 0.55]
+    target_point = [-0.086, 0.443, 0.15]
+    trajectory = []
+    
+    # Generate trajectory points (default speed - 20 points)
+    for t in range(100):
+        point = [
+            start_point[0] + (target_point[0] - start_point[0]) * t / 99,
+            start_point[1] + (target_point[1] - start_point[1]) * t / 99,
+            start_point[2] + (target_point[2] - start_point[2]) * t / 99
+        ]
+        trajectory.append(point + [0])  # Rotation angle remains 0 for this step
+
+    return trajectory
+
+trajectory_1_points = trajectory_1()
+print(f"{len(trajectory_1_points)} trajectory points generated for Step 1:")
+
+execute_trajectory(trajectory_1_points)
+
+def trajectory_2():
+    # Step 2: Rotate the end-effector to align with the can
+    start_rotation = 0  # Current rotation is 0 radians
+    target_rotation = -0.05  # Rotate to align with can's narrower side
+    trajectory = []
+    
+    # Generate trajectory points for rotation (default speed with 20 points)
+    for t in range(100):
+        rotation = start_rotation + (target_rotation - start_rotation) * t / 99
+        trajectory.append([0, 0, 0, rotation])  # Position remains the same during rotation
+
+    return trajectory
+
+trajectory_2_points = trajectory_2()
+print(f"{len(trajectory_2_points)} trajectory points generated for Step 2:")
+
+execute_trajectory(trajectory_2_points)
+
+def trajectory_3():
+    # Step 3: Lower the end-effector to grasp the can
+    start_point = [-0.086, 0.443, 0.15]
+    target_point = [-0.086, 0.443, 0.056]  # Can height
+    trajectory = []
+    
+    # Generate trajectory points (default speed - 20 points)
+    for t in range(100):
+        point = [
+            start_point[0],  # x stays the same
+            start_point[1],  # y stays the same
+            start_point[2] + (target_point[2] - start_point[2]) * t / 99  # Lowering z
+        ]
+        trajectory.append(point + [-0.05])  # Rotation remains -0.05 radians
+
+    return trajectory
+
+trajectory_3_points = trajectory_3()
+print(f"{len(trajectory_3_points)} trajectory points generated for Step 3:")
+
+execute_trajectory(trajectory_3_points)
+
+close_gripper()
+
+def trajectory_4():
+    # Step 5: Lift the can to a safe height
+    start_point = [-0.086, 0.443, 0.056]  # Current height after grasping the can
+    target_point = [-0.086, 0.443, 0.3]    # Safe height
+    trajectory = []
+    
+    # Generate trajectory points (default speed - 20 points)
+    for t in range(100):
+        point = [
+            start_point[0],  # x stays the same
+            start_point[1],  # y stays the same
+            start_point[2] + (target_point[2] - start_point[2]) * t / 99  # Lifting z
+        ]
+        trajectory.append(point + [-0.05])  # Rotation remains -0.05 radians
+
+    return trajectory
+
+trajectory_4_points = trajectory_4()
+print(f"{len(trajectory_4_points)} trajectory points generated for Step 4:")
+
+execute_trajectory(trajectory_4_points)
+
+detect_object("can")
+
+import numpy as np
+
+def rotate_and_move_to_position(position, rotation):
+    trajectory = []
+    # Rotate end effector
+    trajectory.append([position[0], position[1], position[2] + 0.3, rotation])  # Raise to clear height
+    trajectory.append([position[0], position[1], position[2], rotation])  # Move to can height
+    return trajectory
+
+# Define position and rotation for the can
+can_position = [0.0, 0.735, 0.056]
+can_rotation = -0.004
+
+# Generate trajectory to rotate and move above the can
+trajectory_1 = rotate_and_move_to_position(can_position, can_rotation)
+
+def lower_and_close_gripper(position):
+    trajectory = []
+    # Lower to the height of the can
+    trajectory.append([position[0], position[1], position[2], can_rotation])  # Move to can height
+    return trajectory
+
+# Generate trajectory to lower and close gripper
+trajectory_2 = lower_and_close_gripper(can_position)
+
+def close_gripper_and_lift(position):
+    trajectory = []
+    # Close the gripper
+    trajectory.append([position[0], position[1], position[2], can_rotation])  # Close the gripper at can height
+    # Lift the can above the height of the can
+    trajectory.append([position[0], position[1], position[2] + 0.1, can_rotation])  # Move upward
+    return trajectory
+
+# Generate trajectory to close gripper and lift the can
+trajectory_3 = close_gripper_and_lift(can_position)
+
+execute_trajectory(trajectory_1)
+
+execute_trajectory(trajectory_2)
+
+execute_trajectory(trajectory_3)
+
+task_completed()
+
+# Execute the defined trajectories
+execute_trajectory(trajectory_1)
+execute_trajectory(trajectory_2)
+execute_trajectory(trajectory_3)
+
+# Mark the task as completed
+task_completed()
+
+detect_object("can")
+
+# Step 1: Move to initial position above the can
+def trajectory_1():
+    # Start position
+    start_pos = [0.0, 0.6, 0.55]
+    # Target position above the can
+    target_pos = [0.195, 0.742, 0.1]  # Height above can
+    # Orientation
+    orientation = 0.0  # No rotation for this move
+    trajectory = []
+
+    # Generate trajectory points (simplistically linear motion in this case)
+    for t in range(100):
+        pos_x = start_pos[0] + (target_pos[0] - start_pos[0]) * t / 99
+        pos_y = start_pos[1] + (target_pos[1] - start_pos[1]) * t / 99
+        pos_z = start_pos[2] + (target_pos[2] - start_pos[2]) * t / 99
+        trajectory.append([pos_x, pos_y, pos_z, orientation])
+
+    return trajectory
+
+# Execute trajectory 1
+trajectory1 = trajectory_1()
+execute_trajectory(trajectory1)
+
+# Step 2: Rotate the gripper to align with the can
+def trajectory_2():
+    # Current position after Step 1
+    current_pos = [0.195, 0.742, 0.1]  # At height above the can
+    # Orientation to align with shorter side of can
+    target_orientation = -1.571
+    trajectory = []
+    
+    # Generate trajectory for rotation (around z-axis)
+    for t in range(100):
+        # Position stays the same, only rotation changes
+        trajectory.append([current_pos[0], current_pos[1], current_pos[2], target_orientation])
+    
+    return trajectory
+
+# Execute trajectory 2
+trajectory2 = trajectory_2()
+execute_trajectory(trajectory2)
+
+# Step 3: Lower the gripper to contact the can
+def trajectory_3():
+    # Current position with gripper rotated
+    current_pos = [0.195, 0.742, 0.1]  # Height above the can
+    target_height = 0.075  # Height to contact the can
+    trajectory = []
+    
+    # Generate trajectory points for lowering the gripper
+    for t in range(100):
+        pos_z = current_pos[2] - (current_pos[2] - target_height) * t / 99
+        trajectory.append([current_pos[0], current_pos[1], pos_z, -1.571])  # Maintain the same orientation
+
+    return trajectory
+
+# Execute trajectory 3
+trajectory3 = trajectory_3()
+execute_trajectory(trajectory3)
+
+# Step 4: Close the gripper to grasp the can
+def trajectory_4():
+    # Current position at can's surface
+    current_pos = [0.195, 0.742, 0.075]  # At contact height
+    trajectory = []
+    
+    # Generate trajectory points for closing the gripper
+    for t in range(100):
+        # Position remains the same, only the gripper closes
+        trajectory.append([current_pos[0], current_pos[1], current_pos[2], -1.571])  # Maintain orientation
+
+    return trajectory
+
+# Execute trajectory 4
+trajectory4 = trajectory_4()
+execute_trajectory(trajectory4)
+
+# Once the gripper closes, I will move to Step 5 to raise the can.
+
+# Step 5: Raise the gripper to lift the can off the table
+def trajectory_5():
+    # Current position at can's surface with gripper closed
+    current_pos = [0.195, 0.742, 0.075]  # At contact height
+    target_height = 0.1  # Height to lift the can
+    trajectory = []
+    
+    # Generate trajectory points for raising the gripper
+    for t in range(100):
+        pos_z = current_pos[2] + (target_height - current_pos[2]) * t / 99
+        trajectory.append([current_pos[0], current_pos[1], pos_z, -1.571])  # Maintain orientation
+
+    return trajectory
+
+# Execute trajectory 5
+trajectory5 = trajectory_5()
+execute_trajectory(trajectory5)
+
+# Once the task is complete, I will signal task completion.
+task_completed()
+

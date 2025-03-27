@@ -40,6 +40,67 @@ logger.setLevel(logging.INFO)
 from XMem.inference.inference_core import InferenceCore
 from XMem.inference.interact.interactive_utils import image_to_torch, index_numpy_to_one_hot_torch, torch_prob_to_numpy_mask, overlay_davis
 
+
+
+
+
+def memory_chatgpt_output(client, thread_id, assistant_id, prompt, logger):
+    """
+    Sends a user prompt to the specified thread, runs the assistant,
+    waits for the result, and returns the assistant's latest message text.
+
+    Parameters:
+    - client: OpenAI client
+    - thread_id: ID of the conversation thread
+    - assistant_id: ID of the assistant
+    - prompt: user message content (string)
+    - logger: optional logger object
+
+    Returns:
+    - text_string: assistant's latest response (string)
+    """
+
+    client.beta.threads.messages.create(
+        thread_id=thread_id,
+        role="user",
+        content=prompt,
+    )
+
+    if logger:
+        logger.info("Prompt sent to thread")
+
+    run = client.beta.threads.runs.create(
+        thread_id=thread_id,
+        assistant_id=assistant_id
+    )
+
+    while run.status != "completed":
+        run = client.beta.threads.runs.retrieve(thread_id=thread_id, run_id=run.id)
+
+    if logger:
+        logger.info("Assistant run completed")
+
+    messages = list(client.beta.threads.messages.list(thread_id=thread_id, limit=20))
+    last_message = next((msg for msg in messages if msg.role == "assistant"), None)
+
+    if not last_message:
+        raise ValueError("No assistant message found in thread.")
+
+    text_string = last_message.content[0].text.value
+
+    if logger:
+        logger.info("Assistant response retrieved")
+        logger.debug(f"GPT Output:\n{text_string}")
+
+    return text_string
+
+
+
+
+
+
+
+
 def get_langsam_output(image, model, segmentation_texts, segmentation_count):
 
     segmentation_texts = " . ".join(segmentation_texts)

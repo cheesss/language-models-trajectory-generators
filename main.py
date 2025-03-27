@@ -134,34 +134,13 @@ if __name__ == "__main__":
         tools=[{"type": "code_interpreter"}]
     )
     # =================================================================
-    messages = client.beta.threads.messages.create(
+    text_string = models.memory_chatgpt_output(
+        client=client,
         thread_id=thread.id,
-        role="user",
-        content=new_prompt,
+        assistant_id=assistant.id,
+        prompt=new_prompt,
+        logger=logger  # 선택 사항
     )
- 
-    
-    run = client.beta.threads.runs.create(
-    thread_id=thread.id,
-    assistant_id=assistant.id
-    )   
- 
-    
-    while run.status != "completed":
-        run = client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
-    # 반환시까지 반복
-        
-    messages = list(client.beta.threads.messages.list(thread_id=thread.id))
-    # 가장 마지막 메시지를 가져와서 텍스트 추출
-    
-    last_message = next(
-    (msg for msg in messages if msg.role == "assistant"),
-    None
-    )
-    # gpt 출력 중 답변부만 추출
-    
-    
-    text_string = last_message.content[0].text.value
     print(f"text_string: {text_string}")
     
     # print(OK + "Finished generating ChatGPT output!" + str(messages.data[0].content) + ENDC)
@@ -218,7 +197,7 @@ if __name__ == "__main__":
                     logger.info(f("failed_task is True"))
                     logger.info(FAIL + "FAILED TASK! Generating summary of the task execution attempt..." + ENDC)
 
-                    new_prompt = TASK_SUMMARY_PROMPT
+                    new_prompt = TASK_FAILURE_PROMPT
                     # 이전 프롬프트에 실패했다는 내용을 더하여 전달
                     new_prompt += "\n"
                     # 작동 실패시 이전 내용을 요약하여 다시 리턴
@@ -228,34 +207,14 @@ if __name__ == "__main__":
                     
                     
                     # =================================================================memory 기능 추가
-                    messages = client.beta.threads.messages.create(
+                    text_string = models.memory_chatgpt_output(
+                        client=client,
                         thread_id=thread.id,
-                        role="user",
-                        content=new_prompt_2,
+                        assistant_id=assistant.id,
+                        prompt=new_prompt
                     )
-                    
-                    run = client.beta.threads.runs.create(
-                        thread_id=thread.id,
-                        assistant_id=assistant.id
-                    )  
-                    
-                    while run.status != "completed":
-                        run = client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
-                    # 반환시까지 반복
-                    
-                    messages = list(client.beta.threads.messages.list(thread_id=thread.id, limit=20))
-                    # 가장 마지막 메시지를 가져와서 텍스트 추출
-                    
-           
-                    
-                    last_message = next(
-                    (msg for msg in messages if msg.role == "assistant"),
-                    None
-                    )
-                    # gpt 출력 중 답변부만 추출
-                    
-                    text_string = last_message.content[0].text.value
-                    
+
+                    print(f"text_string: {text_string}")
                     # 아직 완료가 되지 않았고, 지금까지 한걸 요약해서 알려달라고 했다. 제대로 출력된다면 메모리 기능이 정상작동하는걸로 볼 수 있다.
                     # =================================================================
                     
@@ -292,38 +251,15 @@ if __name__ == "__main__":
                     # fail은 아니지만 not finished일때 실행된다. messages 로 s가 온다.
                     logger.info(PROGRESS + "Generating ChatGPT output..." + ENDC)
                     # messages = models.get_chatgpt_output(args.language_model, new_prompt, messages, "user")
-                    messages = client.beta.threads.messages.create(
+                    text_string = models.memory_chatgpt_output(
+                        client=client,
                         thread_id=thread.id,
-                        role="user",
-                        content=new_prompt_2,
+                        assistant_id=assistant.id,
+                        prompt=new_prompt_2,
+                        logger=logger  # 기존 로깅도 그대로 사용 가능
                     )
 
-                    logger.info(OK + "Finished generating ChatGPT output!" + new_prompt_2 + ENDC)
-                    
-                    
-                    run = client.beta.threads.runs.create(
-                        thread_id=thread.id,
-                        assistant_id=assistant.id
-                    )   
-
-                    while run.status != "completed":
-                        run = client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
-                    # 반환시까지 반복
-                    
-           
-                    
-                    messages = list(client.beta.threads.messages.list(thread_id=thread.id, limit=20))
-                    # 가장 마지막 메시지를 가져와서 텍스트 추출
-                    
-           
-                    
-                    last_message = next(
-                    (msg for msg in messages if msg.role == "assistant"),
-                    None
-                    )
-                    # gpt 출력 중 답변부만 추출
-                    
-                    text_string = last_message.content[0].text.value
+                    print(f"text_string: {text_string}")
     
     
         # api.completed_task = True 이면 여기로 온다. 
