@@ -79,7 +79,24 @@ if __name__ == "__main__":
     # 얘가 핵심인듯
     # main_connection은 우리가 pybullet상에서 실행된 결과를 받기 위한 파이프 끝점이다.
     # env_connection은 pybullet상에서 env_process가 pybullet상에서 실행된 결과를 보내기 위한 파이프 끝점이다.
-    api = API(args, main_connection, logger, langsam_model, xmem_model, device)
+    
+    
+    # =================================================================
+    client = OpenAI(api_key=api_key)
+    thread = client.beta.threads.create()
+    assistant = client.beta.assistants.create(
+        name="VLM applied 6 degrees of freedom menipulator robot",
+        instructions="""You are a sentient AI that only writes Python code to control a robot arm. You must not execute any functions. Your only job is to plan and write code, not run it. You should produce code to control a robot 
+                        arm by generating Python code which outputs a list of trajectory points for the robot arm end-effector to follow to complete a given user command.
+                        Each element in the trajectory list is an end-effector pose, and should be of length 4, comprising a 3D position and a rotation value. Never try to run the code alone, just follow the instructions below.""",
+        model="gpt-4o-mini",
+        tools=[{"type": "code_interpreter"}]
+    )
+    # =================================================================
+    
+    
+    
+    api = API(args, main_connection, logger, langsam_model, xmem_model, device, client, thread, assistant)
 
     detect_object = api.detect_object
     execute_trajectory = api.execute_trajectory
@@ -122,18 +139,7 @@ if __name__ == "__main__":
     
     # 원래 new_prompt에 디폴트 프롬프트 내용이 포함되어 들어가므로, 해당 내용을 intsructions에 넣어줘야한다. 다시 넣어줄 필요는 없다.
     # INPUT: [INSERT EE POSITION], [INSERT TASK] 이 두개가 메인프롬프트로 들어간다.
-    # =================================================================
-    client = OpenAI(api_key=api_key)
-    thread = client.beta.threads.create()
-    assistant = client.beta.assistants.create(
-        name="VLM applied 6 degrees of freedom menipulator robot",
-        instructions="""You are a sentient AI that only writes Python code to control a robot arm. You must not execute any functions. Your only job is to plan and write code, not run it. You should produce code to control a robot 
-                        arm by generating Python code which outputs a list of trajectory points for the robot arm end-effector to follow to complete a given user command.
-                        Each element in the trajectory list is an end-effector pose, and should be of length 4, comprising a 3D position and a rotation value. Never try to run the code alone, just follow the instructions below.""",
-        model="gpt-4o-mini",
-        tools=[{"type": "code_interpreter"}]
-    )
-    # =================================================================
+
     text_string = models.memory_chatgpt_output(
         client=client,
         thread_id=thread.id,

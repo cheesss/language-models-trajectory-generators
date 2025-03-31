@@ -11,11 +11,17 @@ from prompts.success_detection_prompt import SUCCESS_DETECTION_PROMPT
 from config import OK, PROGRESS, FAIL, ENDC
 from config import CAPTURE_IMAGES, ADD_BOUNDING_CUBES, ADD_TRAJECTORY_POINTS, EXECUTE_TRAJECTORY, OPEN_GRIPPER, CLOSE_GRIPPER, TASK_COMPLETED, RESET_ENVIRONMENT
 # 멀티프로세싱 넘버 불러오기
+from io import StringIO
+from contextlib import redirect_stdout
 
+def save_code_block_to_file(code_block, file_name="code_blocks.txt"):
+    with open(file_name, "a") as file:
+        file.write(str(code_block))  # 코드 블록을 파일에 저장
+        file.write("\n\n")  
 
 class API:
 
-    def __init__(self, args, main_connection, logger, langsam_model, xmem_model, device):
+    def __init__(self, args, main_connection, logger, langsam_model, xmem_model, device, client, thread, assistant):
 
         self.args = args
         self.main_connection = main_connection
@@ -23,6 +29,9 @@ class API:
         self.langsam_model = langsam_model
         self.xmem_model = xmem_model
         self.device = device
+        self.client = client
+        self.thread = thread
+        self.assistant = assistant
         self.segmentation_texts = []
         self.segmentation_count = 0
         self.trajectory_length = 0
@@ -34,7 +43,6 @@ class API:
         self.wrist_camera_position = None
         self.wrist_camera_orientation_q = None
         self.command = None
-
 
 
     def detect_object(self, segmentation_text):
@@ -240,7 +248,8 @@ class API:
                 new_prompt += "Orientations:\n"
                 new_prompt += str(np.around([orientation for o, orientation in enumerate(object_orientations) if o % config.xmem_lm_input_every == 0], 3)) + "\n"
                 new_prompt += "\n"
-
+                # 여기선 SUCCESS_DETECTION_PROMPT를 쓰는데, 그냥 그대로 써도 될듯함
+                
             self.logger.info(OK + "Finished calculating object bounding cubes!" + ENDC)
 
             self.attempted_task = True
@@ -248,19 +257,40 @@ class API:
             messages = []
 
             self.logger.info(PROGRESS + "Generating ChatGPT output..." + ENDC)
-            messages = models.get_chatgpt_output(self.args.language_model, new_prompt, messages, "system", file=sys.stderr)
+            # messages = models.get_chatgpt_output(self.args.language_model, new_prompt, messages, "system", file=sys.stderr)
+            text_string = models.memory_chatgpt_output(
+                client=self.client,
+                thread_id=self.thread.id,
+                assistant_id=self.assistant.id,
+                prompt=new_prompt,
+                logger=self.logger  # 기존 로깅도 그대로 사용 가능
+            )
+
             self.logger.info(OK + "Finished generating ChatGPT output!" + ENDC)
 
-            code_block = messages[-1]["content"].split("```python")
+            # code_block = messages[-1]["content"].split("```python")
 
-            task_completed = self.task_completed
-            task_failed = self.task_failed
+            # task_completed = self.task_completed
+            # task_failed = self.task_failed
 
-            for block in code_block:
-                if len(block.split("```")) > 1:
-                    code = block.split("```")[0]
-                    exec(code)
-
+            # for block in code_block:
+            #     if len(block.split("```")) > 1:
+            #         code = block.split("```")[0]
+            #         exec(code)
+            if "```python" in text_string:
+                code_block = text_string.split("```python")
+                block_number = 0
+                for block in code_block:
+                    if "```" in block:
+                        code = block.split("```")[0].strip()  # 코드만 깔끔하게 추출
+                        save_code_block_to_file(code)        # 저장 함수 호출
+                        block_number += 1
+                        try:
+                            f = StringIO()
+                            with redirect_stdout(f):
+                                exec(code)
+                        except Exception:
+                            error = True
 
 
     def task_failed(self):

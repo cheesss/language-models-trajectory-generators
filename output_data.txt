@@ -1,4 +1,4 @@
-logits: [array([0.6867903], dtype=float32)]
+logits: [array([0.55953074], dtype=float32)]
 phrases: [['can']]
-boxes: [array([[ 54.690945,  75.32687 ,  78.22131 , 104.96347 ]], dtype=float32)]
+boxes: [array([[123.464264,  30.94402 , 139.27045 ,  59.024677]], dtype=float32)]
 masks: (1, 1, 256, 256)

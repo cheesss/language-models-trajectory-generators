@@ -90,7 +90,7 @@ def memory_chatgpt_output(client, thread_id, assistant_id, prompt, logger):
 
     if logger:
         logger.info("Assistant response retrieved")
-        logger.debug(f"GPT Output:\n{text_string}")
+        # logger.debug(f"GPT Output:\n{text_string}")
 
     return text_string
 
